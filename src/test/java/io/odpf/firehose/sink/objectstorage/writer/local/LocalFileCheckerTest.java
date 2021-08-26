@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static io.odpf.firehose.metrics.Metrics.*;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.*;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

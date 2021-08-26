@@ -1,6 +1,5 @@
-package io.odpf.firehose.sink.objectstorage;
+package io.odpf.firehose.metrics;
 
-import io.odpf.firehose.metrics.Metrics;
 
 public class ObjectStorageMetrics {
     public static final String LOCAL_FILE_OPEN_TOTAL = Metrics.APPLICATION_PREFIX + Metrics.SINK_PREFIX + Metrics.OBJECTSTORAGE_SINK_PREFIX + "file_open_total";

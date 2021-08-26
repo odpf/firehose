@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
 import static io.odpf.firehose.metrics.Metrics.FAILURE_TAG;
 import static io.odpf.firehose.metrics.Metrics.SUCCESS_TAG;
 import static io.odpf.firehose.metrics.Metrics.tag;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.LOCAL_FILE_CLOSE_TOTAL;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.LOCAL_FILE_CLOSING_TIME_MILLISECONDS;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.LOCAL_FILE_OPEN_TOTAL;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.LOCAL_FILE_SIZE_BYTES;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.PARTITION_TAG;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.TOPIC_TAG;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.LOCAL_FILE_CLOSE_TOTAL;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.LOCAL_FILE_CLOSING_TIME_MILLISECONDS;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.LOCAL_FILE_OPEN_TOTAL;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.LOCAL_FILE_SIZE_BYTES;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.PARTITION_TAG;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.TOPIC_TAG;
 
 public class LocalFileChecker implements Runnable {
     private final Queue<FileMeta> toBeFlushedToRemotePaths;
@@ -41,9 +41,9 @@ public class LocalFileChecker implements Runnable {
         toBeRotated = timePartitionWriterMap.entrySet().stream().filter(kv -> localStorage.shouldRotate(kv.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         timePartitionWriterMap.entrySet().removeIf(kv -> toBeRotated.containsKey(kv.getKey()));
-        toBeRotated.forEach((key, writer) -> {
+        toBeRotated.forEach((path, writer) -> {
             String filePath = writer.getFullPath();
-            Partition partition = localStorage.getPartitionFactory().fromPartitionPath(key);
+            Partition partition = localStorage.getPartitionFactory().fromPartitionPath(path);
             try {
                 Instant startTime = Instant.now();
                 writer.close();

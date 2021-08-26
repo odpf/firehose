@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 import static io.odpf.firehose.metrics.Metrics.FAILURE_TAG;
 import static io.odpf.firehose.metrics.Metrics.SUCCESS_TAG;
 import static io.odpf.firehose.metrics.Metrics.tag;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.FILE_UPLOAD_BYTES;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.FILE_UPLOAD_TIME_MILLISECONDS;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.FILE_UPLOAD_TOTAL;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.OBJECT_STORE_ERROR_TYPE_TAG;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.PARTITION_TAG;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.TOPIC_TAG;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.FILE_UPLOAD_BYTES;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.FILE_UPLOAD_TIME_MILLISECONDS;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.FILE_UPLOAD_TOTAL;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.OBJECT_STORE_ERROR_TYPE_TAG;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.PARTITION_TAG;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.TOPIC_TAG;
 
 @AllArgsConstructor
 public class ObjectStorageChecker implements Runnable {

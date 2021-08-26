@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 import static io.odpf.firehose.metrics.Metrics.*;
-import static io.odpf.firehose.sink.objectstorage.ObjectStorageMetrics.*;
+import static io.odpf.firehose.metrics.ObjectStorageMetrics.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
