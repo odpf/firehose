@@ -423,13 +423,12 @@ public class HttpSinkTest {
         when(request.build(messages)).thenReturn(httpRequests);
         when(httpClient.execute(httpPut)).thenReturn(response);
         when(response.getAllHeaders()).thenReturn(new Header[]{new BasicHeader("Accept", "text/plain")});
-        when(response.getEntity()).thenReturn(httpEntity);
 
         HttpSink httpSink = new HttpSink(instrumentation, request, httpClient, stencilClient,
                 retryStatusCodeRange, requestLogStatusCodeRanges);
         httpSink.prepare(messages);
         httpSink.execute();
         verify(instrumentation, times(1)).logDebug(
-                "Response Body: [{\"key\":\"value1\"},{\"key\":\"value2\"}]");
+                eq("Response Body: {}"), any(SerializableHttpResponse.class));
     }
 }

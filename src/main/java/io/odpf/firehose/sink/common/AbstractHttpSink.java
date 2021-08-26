@@ -7,6 +7,7 @@ import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.exception.NeedToRetry;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.sink.AbstractSink;
+import io.odpf.firehose.sink.http.SerializableHttpResponse;
 import joptsimple.internal.Strings;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -49,7 +50,8 @@ public abstract class AbstractHttpSink extends AbstractSink {
                 response = httpClient.execute(httpRequest);
                 getInstrumentation().logInfo("Response Status: {}", statusCode(response));
                 if (shouldLogResponse(response)) {
-                    printResponse(response);
+                    SerializableHttpResponse serializableHttpResponse = new SerializableHttpResponse(response);
+                    getInstrumentation().logDebug("Response Body: {}", serializableHttpResponse);
                 }
                 if (shouldLogRequest(response)) {
                     printRequest(httpRequest);
@@ -122,14 +124,6 @@ public abstract class AbstractHttpSink extends AbstractSink {
                 Arrays.asList(httpRequest.getAllHeaders()),
                 Strings.join(readContent(inputStream), "\n"));
         getInstrumentation().logInfo(entireRequest);
-        inputStream.reset();
-    }
-
-    private void printResponse(HttpResponse response) throws IOException {
-        InputStream inputStream = response.getEntity().getContent();
-        String entireRequest = String.format("Response Body: %s",
-                Strings.join(readContent(inputStream), "\n"));
-        getInstrumentation().logDebug(entireRequest);
         inputStream.reset();
     }
 
