@@ -1,6 +1,6 @@
 package io.odpf.firehose.sink.redis.parsers;
 
-import com.gojek.de.stencil.parser.ProtoParser;
+
 import io.odpf.firehose.config.RedisSinkConfig;
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.metrics.Instrumentation;
@@ -9,6 +9,7 @@ import io.odpf.firehose.proto.ProtoToFieldMapper;
 import io.odpf.firehose.sink.redis.dataentry.RedisDataEntry;
 import io.odpf.firehose.sink.redis.dataentry.RedisHashSetFieldEntry;
 import com.google.protobuf.DynamicMessage;
+import io.odpf.stencil.parser.ProtoParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +25,7 @@ public class RedisHashSetParser extends RedisParser {
 
     /**
      * Instantiates a new Redis hash set parser.
-     *
-     * @param protoToFieldMapper the proto to field mapper
+     *  @param protoToFieldMapper the proto to field mapper
      * @param protoParser        the proto parser
      * @param redisSinkConfig    the redis sink config
      * @param statsDReporter     the statsd reporter

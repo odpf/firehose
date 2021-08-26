@@ -1,12 +1,15 @@
 package io.odpf.firehose.sink.jdbc.field.message;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.StencilClientFactory;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
+
 import io.odpf.firehose.consumer.TestAuditEntityLogMessage;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Timestamp;
+import io.odpf.stencil.StencilClientFactory;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

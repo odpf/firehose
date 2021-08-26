@@ -1,8 +1,8 @@
 package io.odpf.firehose.sink.jdbc;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.StencilClientFactory;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
+
 import io.odpf.firehose.consumer.TestMapMessage;
 import io.odpf.firehose.consumer.TestMessage;
 import io.odpf.firehose.consumer.TestFeedbackLogMessage;
@@ -11,6 +11,9 @@ import io.odpf.firehose.consumer.TestNestedMessage;
 import io.odpf.firehose.consumer.TestNestedRepeatedMessage;
 import io.odpf.firehose.proto.ProtoToFieldMapper;
 import com.google.protobuf.Timestamp;
+import io.odpf.stencil.StencilClientFactory;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import net.minidev.json.JSONObject;
 import org.gradle.internal.impldep.org.testng.Assert;
 import org.junit.After;

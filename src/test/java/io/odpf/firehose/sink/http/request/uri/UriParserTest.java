@@ -1,13 +1,16 @@
 package io.odpf.firehose.sink.http.request.uri;
 
-import com.gojek.de.stencil.client.ClassLoadStencilClient;
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
+
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.consumer.TestBookingLogMessage;
 import io.odpf.firehose.consumer.TestKey;
 import io.odpf.firehose.consumer.TestMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.odpf.stencil.client.ClassLoadStencilClient;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.apache.kafka.common.errors.InvalidConfigurationException;
 import org.junit.Before;
 import org.junit.Test;

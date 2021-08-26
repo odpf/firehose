@@ -68,7 +68,7 @@ public class StatsDReporter implements Closeable {
     }
 
     public void recordEvent(String metric, String eventName, String... tags) {
-        client.recordSetEvent(withTags(metric, tags), eventName);
+        client.recordSetValue(withTags(metric, tags), eventName);
     }
 
     private String withGlobalTags(String metric) {

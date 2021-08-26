@@ -39,6 +39,29 @@ public interface AppConfig extends Config {
     @DefaultValue("false")
     Boolean isSchemaRegistryStencilEnable();
 
+    @Key("SCHEMA_REGISTRY_STENCIL_FETCH_TIMEOUT_MS")
+    @DefaultValue("10000")
+    Integer getSchemaRegistryStencilFetchTimeoutMs();
+
+    @Key("SCHEMA_REGISTRY_STENCIL_FETCH_RETRIES")
+    @DefaultValue("4")
+    Integer getSchemaRegistryStencilFetchRetries();
+
+    @Key("SCHEMA_REGISTRY_STENCIL_FETCH_BACKOFF_MIN_MS")
+    @DefaultValue("60000")
+    Long getSchemaRegistryStencilFetchBackoffMinMs();
+
+    @Key("SCHEMA_REGISTRY_STENCIL_FETCH_AUTH_BEARER_TOKEN")
+    String getSchemaRegistryStencilFetchAuthBearerToken();
+
+    @Key("SCHEMA_REGISTRY_STENCIL_CACHE_AUTO_REFRESH")
+    @DefaultValue("false")
+    Boolean getSchemaRegistryStencilCacheAutoRefresh();
+
+    @Key("SCHEMA_REGISTRY_STENCIL_CACHE_TTL_MS")
+    @DefaultValue("900000")
+    Long getSchemaRegistryStencilCacheTtlMs();
+
     @Key("SCHEMA_REGISTRY_STENCIL_URLS")
     String getSchemaRegistryStencilUrls();
 

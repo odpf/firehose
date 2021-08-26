@@ -1,12 +1,14 @@
 package io.odpf.firehose.sink.redis.parsers;
 
-import com.gojek.de.stencil.client.ClassLoadStencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.RedisSinkConfig;
 import io.odpf.firehose.config.enums.RedisSinkDataType;
 import io.odpf.firehose.consumer.TestMessage;
 import io.odpf.firehose.metrics.StatsDReporter;
 import io.odpf.firehose.proto.ProtoToFieldMapper;
+import io.odpf.stencil.client.ClassLoadStencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

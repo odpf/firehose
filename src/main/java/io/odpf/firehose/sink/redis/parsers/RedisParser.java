@@ -1,12 +1,13 @@
 package io.odpf.firehose.sink.redis.parsers;
 
-import com.gojek.de.stencil.parser.ProtoParser;
+
 import io.odpf.firehose.config.RedisSinkConfig;
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.sink.redis.dataentry.RedisDataEntry;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.odpf.stencil.parser.ProtoParser;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.errors.InvalidConfigurationException;

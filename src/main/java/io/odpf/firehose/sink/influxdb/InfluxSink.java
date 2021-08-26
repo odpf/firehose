@@ -1,13 +1,15 @@
 package io.odpf.firehose.sink.influxdb;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.sink.influxdb.builder.PointBuilder;
 import io.odpf.firehose.config.InfluxSinkConfig;
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.sink.AbstractSink;
 import io.odpf.firehose.metrics.Instrumentation;
 import com.google.protobuf.DynamicMessage;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;

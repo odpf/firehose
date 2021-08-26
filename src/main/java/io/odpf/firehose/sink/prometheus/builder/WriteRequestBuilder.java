@@ -1,10 +1,11 @@
 package io.odpf.firehose.sink.prometheus.builder;
 
-import com.gojek.de.stencil.parser.ProtoParser;
+
 import io.odpf.firehose.consumer.Message;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import cortexpb.Cortex;
+import io.odpf.stencil.parser.ProtoParser;
 
 import java.util.ArrayList;
 import java.util.Comparator;

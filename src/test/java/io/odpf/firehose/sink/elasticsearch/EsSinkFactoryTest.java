@@ -1,9 +1,10 @@
 package io.odpf.firehose.sink.elasticsearch;
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
 import io.odpf.firehose.sink.Sink;
+import io.odpf.stencil.client.StencilClient;
 import org.apache.http.HttpHost;
 import org.junit.Before;
 import org.junit.Test;

@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.mongodb.request;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.ReplaceOneModel;
 import io.odpf.firehose.config.enums.MongoSinkMessageType;

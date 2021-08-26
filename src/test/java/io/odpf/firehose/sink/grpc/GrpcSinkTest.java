@@ -1,13 +1,14 @@
 package io.odpf.firehose.sink.grpc;
 
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.consumer.TestGrpcResponse;
 import io.odpf.firehose.exception.DeserializerException;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.sink.grpc.client.GrpcClient;
 import com.google.protobuf.DynamicMessage;
+import io.odpf.stencil.client.StencilClient;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.Before;
 import org.junit.Test;

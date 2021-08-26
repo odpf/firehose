@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.http;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.HttpSinkConfig;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
@@ -11,6 +11,8 @@ import io.odpf.firehose.sink.http.auth.OAuth2Credential;
 import io.odpf.firehose.sink.http.request.types.Request;
 import io.odpf.firehose.sink.http.request.RequestFactory;
 import io.odpf.firehose.sink.http.request.uri.UriParser;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.aeonbits.owner.ConfigFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;

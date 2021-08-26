@@ -1,12 +1,13 @@
 package io.odpf.firehose.sink.prometheus.builder;
 
-import com.gojek.de.stencil.parser.ProtoParser;
+
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.consumer.TestFeedbackLogMessage;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Timestamp;
 import cortexpb.Cortex;
+import io.odpf.stencil.parser.ProtoParser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

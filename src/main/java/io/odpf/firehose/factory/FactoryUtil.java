@@ -5,6 +5,7 @@ import io.odpf.firehose.consumer.ConsumerRebalancer;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
 import io.odpf.firehose.parser.KafkaEnvironmentVariables;
+import io.odpf.stencil.config.StencilConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 
@@ -59,5 +60,17 @@ public class FactoryUtil {
     private static Map<String, Object> merge(HashMap<String, Object> consumerConfigurationMap, Map<String, String> extraParameters) {
         consumerConfigurationMap.putAll(extraParameters);
         return consumerConfigurationMap;
+    }
+
+    public static StencilConfig getStencilConfig(KafkaConsumerConfig kafkaConsumerConfig) {
+        return StencilConfig.builder()
+                .cacheAutoRefresh(kafkaConsumerConfig.getSchemaRegistryStencilCacheAutoRefresh())
+                .cacheTtlMs(kafkaConsumerConfig.getSchemaRegistryStencilCacheTtlMs())
+                .fetchAuthBearerToken(kafkaConsumerConfig.getSchemaRegistryStencilFetchAuthBearerToken())
+                .fetchBackoffMinMs(kafkaConsumerConfig.getSchemaRegistryStencilFetchBackoffMinMs())
+                .fetchRetries(kafkaConsumerConfig.getSchemaRegistryStencilFetchRetries())
+                .fetchTimeoutMs(kafkaConsumerConfig.getSchemaRegistryStencilFetchTimeoutMs())
+                .build();
+
     }
 }

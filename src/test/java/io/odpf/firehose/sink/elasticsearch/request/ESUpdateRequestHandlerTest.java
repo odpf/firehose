@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.elasticsearch.request;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.enums.EsSinkMessageType;
 import io.odpf.firehose.config.enums.EsSinkRequestType;
 import io.odpf.firehose.consumer.Message;
@@ -10,6 +10,8 @@ import io.odpf.firehose.exception.JsonParseException;
 import io.odpf.firehose.serializer.MessageToJson;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.common.xcontent.XContentType;

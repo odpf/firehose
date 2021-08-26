@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.http.request;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.HttpSinkConfig;
 import io.odpf.firehose.config.enums.HttpSinkRequestMethodType;
 import io.odpf.firehose.metrics.Instrumentation;
@@ -19,6 +19,8 @@ import io.odpf.firehose.sink.http.request.types.Request;
 import io.odpf.firehose.sink.http.request.types.SimpleRequest;
 import io.odpf.firehose.sink.http.request.uri.UriBuilder;
 import io.odpf.firehose.sink.http.request.uri.UriParser;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 
 import java.util.Arrays;
 import java.util.List;

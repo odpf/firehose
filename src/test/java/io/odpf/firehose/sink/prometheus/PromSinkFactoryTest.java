@@ -1,9 +1,10 @@
 package io.odpf.firehose.sink.prometheus;
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.exception.DeserializerException;
 import io.odpf.firehose.metrics.StatsDReporter;
 import io.odpf.firehose.sink.AbstractSink;
+import io.odpf.stencil.client.StencilClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

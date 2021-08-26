@@ -1,12 +1,13 @@
 package io.odpf.firehose.sink.redis.client;
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.config.RedisSinkConfig;
 import io.odpf.firehose.config.enums.RedisSinkDeploymentType;
 import io.odpf.firehose.config.enums.RedisSinkDataType;
 import io.odpf.firehose.config.enums.RedisSinkTtlType;
 import io.odpf.firehose.exception.EglcConfigurationException;
 import io.odpf.firehose.metrics.StatsDReporter;
+import io.odpf.stencil.client.StencilClient;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

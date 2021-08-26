@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.redis.client;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.RedisSinkConfig;
 import io.odpf.firehose.config.enums.RedisSinkDeploymentType;
 import io.odpf.firehose.exception.EglcConfigurationException;
@@ -12,6 +12,8 @@ import io.odpf.firehose.sink.redis.parsers.RedisParser;
 import io.odpf.firehose.sink.redis.parsers.RedisParserFactory;
 import io.odpf.firehose.sink.redis.ttl.RedisTtl;
 import io.odpf.firehose.sink.redis.ttl.RedisTTLFactory;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.apache.commons.lang.StringUtils;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;

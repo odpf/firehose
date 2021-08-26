@@ -1,10 +1,11 @@
 package io.odpf.firehose.proto;
 
-import com.gojek.de.stencil.parser.ProtoParser;
+
 import io.odpf.firehose.sink.jdbc.JdbcMapper;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import io.odpf.stencil.parser.ProtoParser;
 import org.apache.http.util.Asserts;
 
 import java.util.Enumeration;

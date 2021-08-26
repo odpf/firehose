@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.grpc.client;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.GrpcSinkConfig;
 import io.odpf.firehose.metrics.Instrumentation;
 import com.google.protobuf.DynamicMessage;
@@ -15,6 +15,8 @@ import io.grpc.stub.MetadataUtils;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptors;
 import io.grpc.CallOptions;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
@@ -32,7 +34,7 @@ public class GrpcClient {
     private Instrumentation instrumentation;
     private final GrpcSinkConfig grpcSinkConfig;
     private ProtoParser protoParser;
-    private  StencilClient stencilClient;
+    private StencilClient stencilClient;
     private ManagedChannel managedChannel;
 
     public GrpcClient(Instrumentation instrumentation, GrpcSinkConfig grpcSinkConfig, ManagedChannel managedChannel, StencilClient stencilClient) {

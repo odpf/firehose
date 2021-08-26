@@ -1,6 +1,6 @@
 package io.odpf.firehose.sink.prometheus.request;
 
-import com.gojek.de.stencil.parser.ProtoParser;
+
 import io.odpf.firehose.config.PromSinkConfig;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
@@ -8,6 +8,7 @@ import io.odpf.firehose.sink.prometheus.builder.HeaderBuilder;
 import io.odpf.firehose.sink.prometheus.builder.RequestEntityBuilder;
 import io.odpf.firehose.sink.prometheus.builder.TimeSeriesBuilder;
 import io.odpf.firehose.sink.prometheus.builder.WriteRequestBuilder;
+import io.odpf.stencil.parser.ProtoParser;
 
 /**
  * Prometheus Request Creator.

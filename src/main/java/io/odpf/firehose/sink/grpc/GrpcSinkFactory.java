@@ -1,6 +1,6 @@
 package io.odpf.firehose.sink.grpc;
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.config.GrpcSinkConfig;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
@@ -9,6 +9,7 @@ import io.odpf.firehose.sink.SinkFactory;
 import io.odpf.firehose.sink.grpc.client.GrpcClient;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.odpf.stencil.client.StencilClient;
 import org.aeonbits.owner.ConfigFactory;
 
 import java.util.Map;

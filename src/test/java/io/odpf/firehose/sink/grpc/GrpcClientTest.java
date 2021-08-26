@@ -1,8 +1,8 @@
 package io.odpf.firehose.sink.grpc;
 
 
-import com.gojek.de.stencil.StencilClientFactory;
-import com.gojek.de.stencil.client.StencilClient;
+
+
 import io.odpf.firehose.config.GrpcSinkConfig;
 import io.odpf.firehose.consumer.Error;
 import io.odpf.firehose.consumer.TestGrpcRequest;
@@ -14,6 +14,8 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
+import io.odpf.stencil.StencilClientFactory;
+import io.odpf.stencil.client.StencilClient;
 import org.aeonbits.owner.ConfigFactory;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;

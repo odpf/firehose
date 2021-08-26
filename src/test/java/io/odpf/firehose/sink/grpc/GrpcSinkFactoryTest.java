@@ -1,13 +1,14 @@
 package io.odpf.firehose.sink.grpc;
 
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.consumer.TestServerGrpc;
 import io.odpf.firehose.exception.DeserializerException;
 import io.odpf.firehose.metrics.StatsDReporter;
 import io.odpf.firehose.sink.Sink;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.odpf.stencil.client.StencilClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

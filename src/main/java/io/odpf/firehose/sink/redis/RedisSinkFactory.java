@@ -1,7 +1,7 @@
 package io.odpf.firehose.sink.redis;
 
 
-import com.gojek.de.stencil.client.StencilClient;
+
 import io.odpf.firehose.config.RedisSinkConfig;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
@@ -9,6 +9,7 @@ import io.odpf.firehose.sink.AbstractSink;
 import io.odpf.firehose.sink.SinkFactory;
 import io.odpf.firehose.sink.redis.client.RedisClient;
 import io.odpf.firehose.sink.redis.client.RedisClientFactory;
+import io.odpf.stencil.client.StencilClient;
 import org.aeonbits.owner.ConfigFactory;
 
 import java.util.Map;

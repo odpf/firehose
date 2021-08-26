@@ -1,12 +1,14 @@
 package io.odpf.firehose.sink.influxdb;
 
-import com.gojek.de.stencil.client.StencilClient;
-import com.gojek.de.stencil.parser.ProtoParser;
+
+
 import io.odpf.firehose.config.InfluxSinkConfig;
 import io.odpf.firehose.sink.AbstractSink;
 import io.odpf.firehose.sink.SinkFactory;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.metrics.StatsDReporter;
+import io.odpf.stencil.client.StencilClient;
+import io.odpf.stencil.parser.ProtoParser;
 import org.aeonbits.owner.ConfigFactory;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
