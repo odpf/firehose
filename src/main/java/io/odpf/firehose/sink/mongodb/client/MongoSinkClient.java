@@ -132,7 +132,7 @@ public class MongoSinkClient implements Closeable {
             if (mongoSinkConfig.isSinkMongoModeUpdateOnlyEnable()) {
 
                 for (int i = 0; i < failureCount; i++) {
-                    instrumentation.incrementCounterWithTags(SINK_MESSAGES_DROP_TOTAL, "cause=Primary Key value not found");
+                    instrumentation.incrementCounter(SINK_MESSAGES_DROP_TOTAL, "cause=Primary Key value not found");
                 }
                 instrumentation.logWarn("Some Messages were dropped because their Primary Key values had no matches");
             } else {
@@ -157,13 +157,13 @@ public class MongoSinkClient implements Closeable {
                 totalWriteCount);
 
         for (int i = 0; i < totalInsertedCount; i++) {
-            instrumentation.incrementCounterWithTags(SINK_MONGO_INSERTED_TOTAL);
+            instrumentation.incrementCounter(SINK_MONGO_INSERTED_TOTAL);
         }
         for (int i = 0; i < writeResult.getModifiedCount(); i++) {
-            instrumentation.incrementCounterWithTags(SINK_MONGO_UPDATED_TOTAL);
+            instrumentation.incrementCounter(SINK_MONGO_UPDATED_TOTAL);
         }
         for (int i = 0; i < totalWriteCount; i++) {
-            instrumentation.incrementCounterWithTags(SINK_MONGO_MODIFIED_TOTAL);
+            instrumentation.incrementCounter(SINK_MONGO_MODIFIED_TOTAL);
         }
     }
 
@@ -183,7 +183,7 @@ public class MongoSinkClient implements Closeable {
                 .filter(writeError -> mongoRetryStatusCodeBlacklist.contains(writeError.getCode()))
                 .forEach(writeError -> {
                     instrumentation.logWarn("Non-retriable error due to response status: {} is under blacklisted status code", writeError.getCode());
-                    instrumentation.incrementCounterWithTags(SINK_MESSAGES_DROP_TOTAL, "cause=" + writeError.getMessage());
+                    instrumentation.incrementCounter(SINK_MESSAGES_DROP_TOTAL, "cause=" + writeError.getMessage());
                     instrumentation.logInfo("Message dropped because of status code: " + writeError.getCode());
                 });
 

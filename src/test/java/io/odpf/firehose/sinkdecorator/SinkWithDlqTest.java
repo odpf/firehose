@@ -1,30 +1,32 @@
 package io.odpf.firehose.sinkdecorator;
 
+import io.odpf.firehose.config.DlqConfig;
+import io.odpf.firehose.config.ErrorConfig;
+import io.odpf.firehose.error.ErrorInfo;
+import io.odpf.firehose.error.ErrorType;
 import io.odpf.firehose.consumer.Message;
-import io.odpf.firehose.consumer.TestKey;
-import io.odpf.firehose.consumer.TestMessage;
-import io.odpf.firehose.exception.DeserializerException;
+import io.odpf.firehose.error.ErrorHandler;
 import io.odpf.firehose.metrics.Instrumentation;
-import io.odpf.firehose.metrics.StatsDReporter;
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeader;
-import org.apache.kafka.common.header.internals.RecordHeaders;
+import io.odpf.firehose.metrics.Metrics;
+import io.odpf.firehose.sinkdecorator.dlq.DlqWriter;
+import org.aeonbits.owner.ConfigFactory;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
+import static io.odpf.firehose.metrics.Metrics.DLQ_MESSAGES_TOTAL;
+import static io.odpf.firehose.metrics.Metrics.DLQ_RETRY_TOTAL;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -32,13 +34,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class SinkWithDlqTest {
 
     @Mock
-    private KafkaProducer<byte[], byte[]> kafkaProducer;
+    private BackOffProvider backOffProvider;
 
     @Mock
     private SinkWithRetry sinkWithRetry;
-
-    @Mock
-    private BackOffProvider backOffProvider;
 
     @Mock
     private Message message;
@@ -47,233 +46,224 @@ public class SinkWithDlqTest {
     private Instrumentation instrumentation;
 
     @Mock
-    private StatsDReporter statsDReporter;
+    private DlqWriter dlqWriter;
+
+    @Mock
+    private DlqConfig dlqConfig;
+
+    private ErrorHandler errorHandler;
 
     @Before
     public void setup() {
         initMocks(this);
+        when(dlqConfig.getDlqRetryMaxAttempts()).thenReturn(10);
+        when(dlqConfig.getDlqRetryFailAfterMaxAttemptEnable()).thenReturn(true);
+        errorHandler = new ErrorHandler(ConfigFactory.create(ErrorConfig.class, new HashMap<String, String>() {{
+            put("ERROR_TYPES_FOR_DLQ", ErrorType.DESERIALIZATION_ERROR.name());
+        }}));
     }
 
     @Test
-    public void shouldReturnEmptyListIfSuperReturnsEmptyList() throws IOException, DeserializerException {
-        when(sinkWithRetry.pushMessage(anyList())).thenReturn(new ArrayList<>());
-        SinkWithDlq sinkWithDlq = SinkWithDlq.withInstrumentationFactory(sinkWithRetry, kafkaProducer, "test-topic",
-                statsDReporter, backOffProvider);
-        ArrayList<Message> messages = new ArrayList<>();
-        messages.add(message);
-        List<Message> messageList = sinkWithDlq.pushMessage(messages);
-
-        assertTrue(messageList.isEmpty());
-        verifyZeroInteractions(kafkaProducer);
-    }
-
-    @Test
-    public void shouldPublishToKafkaIfListIsNotEmpty() throws Exception {
+    public void shouldWriteToDLQWriter() throws Exception {
+        when(dlqWriter.write(anyList())).thenReturn(new LinkedList<>());
         ArrayList<Message> messages = new ArrayList<>();
         messages.add(message);
         messages.add(message);
+        when(message.getErrorInfo()).thenReturn(new ErrorInfo(new RuntimeException(), ErrorType.DESERIALIZATION_ERROR));
         when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
 
-        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, kafkaProducer, "test-topic",
-                instrumentation, backOffProvider);
-        Thread thread = new Thread(() -> {
-            try {
-                sinkWithDlq.pushMessage(messages);
-            } catch (IOException | DeserializerException e) {
-                e.printStackTrace();
-            }
-        });
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
 
-        thread.start();
-
-        ArgumentCaptor<Callback> callbacks = ArgumentCaptor.forClass(Callback.class);
-        verify(kafkaProducer, timeout(200).times(2)).send(any(), callbacks.capture());
-        List<Callback> calls = callbacks.getAllValues();
-        calls.get(0).onCompletion(null, null);
-        calls.get(1).onCompletion(null, null);
+        List<Message> pushResult = sinkWithDlq.pushMessage(messages);
+        verify(dlqWriter, times(1)).write(messages);
+        assertEquals(0, pushResult.size());
+        verify(instrumentation, times(2)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.TOTAL, ErrorType.DESERIALIZATION_ERROR, 1);
+        verify(instrumentation, times(1)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.SUCCESS, 2);
+        verify(instrumentation, times(1)).incrementCounter(DLQ_RETRY_TOTAL);
+        verify(instrumentation, times(1)).captureGlobalMessageMetrics(Metrics.MessageScope.DLQ, 2);
     }
 
     @Test
-    public void testRunShouldSendWithCorrectArgumentsIfHeadersAreNotSet() throws IOException, DeserializerException {
+    public void shouldNotWriteToDLQWhenDlqMessagesIsEmpty() throws IOException {
+        ArrayList<Message> messages = new ArrayList<>();
+        when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
+
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
+
+        sinkWithDlq.pushMessage(messages);
+        verify(dlqWriter, never()).write(messages);
+    }
+
+    @Test(expected = IOException.class)
+    public void shouldThrowIOExceptionWhenWriterThrowIOException() throws IOException {
+        when(dlqWriter.write(anyList())).thenThrow(new IOException());
         ArrayList<Message> messages = new ArrayList<>();
         messages.add(message);
         messages.add(message);
+        when(message.getErrorInfo()).thenReturn(new ErrorInfo(new RuntimeException(), ErrorType.DESERIALIZATION_ERROR));
         when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
 
-        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, kafkaProducer, "test-topic",
-                instrumentation, backOffProvider);
-        Thread thread = new Thread(() -> {
-            try {
-                sinkWithDlq.pushMessage(messages);
-            } catch (IOException | DeserializerException e) {
-                e.printStackTrace();
-            }
-        });
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
 
-        thread.start();
-
-        ArgumentCaptor<Callback> callbacks = ArgumentCaptor.forClass(Callback.class);
-        ArgumentCaptor<ProducerRecord> records = ArgumentCaptor.forClass(ProducerRecord.class);
-
-        verify(kafkaProducer, timeout(200).times(2)).send(records.capture(), callbacks.capture());
-        List<Callback> calls = callbacks.getAllValues();
-        List<ProducerRecord> actualRecords = records.getAllValues();
-
-        calls.get(0).onCompletion(null, null);
-        calls.get(1).onCompletion(null, null);
-
-        assertEquals(expectedRecords(messages.get(0)), actualRecords.get(0));
-        assertEquals(expectedRecords(messages.get(1)), actualRecords.get(1));
+        sinkWithDlq.pushMessage(messages);
     }
 
     @Test
-    public void testRunShouldSendWithCorrectArgumentsIfHeadersAreSet() throws IOException, DeserializerException {
+    public void shouldRetryWriteMessagesToDlqUntilRetryMessagesEmpty() throws IOException {
+        Message messageWithError = new Message(this.message, new ErrorInfo(new IOException(), ErrorType.DESERIALIZATION_ERROR));
         ArrayList<Message> messages = new ArrayList<>();
-        Headers headers = new RecordHeaders();
-        headers.add(new RecordHeader("key1", "value1".getBytes()));
-        headers.add(new RecordHeader("key2", "value2".getBytes()));
+        messages.add(messageWithError);
+        messages.add(messageWithError);
 
+        List<Message> dlqRetryMessages = new LinkedList<>();
+        dlqRetryMessages.add(messageWithError);
 
-        TestMessage testMessage = TestMessage.newBuilder().setOrderNumber("123").setOrderUrl("abc")
-                .setOrderDetails("details").build();
-        TestKey key = TestKey.newBuilder().setOrderNumber("123").setOrderUrl("abc").build();
+        when(sinkWithRetry.pushMessage(messages)).thenReturn(messages);
+        when(dlqWriter.write(messages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(new ArrayList<>());
 
-        Message msg1 = new Message(key.toByteArray(), testMessage.toByteArray(), "topic1", 0, 100, headers, 1L, 1L);
-        Message msg2 = new Message(key.toByteArray(), testMessage.toByteArray(), "topic2", 0, 100, headers, 1L, 1L);
-        messages.add(msg1);
-        messages.add(msg2);
-        when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
 
-        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, kafkaProducer, "test-topic",
-                instrumentation, backOffProvider);
-        Thread thread = new Thread(() -> {
-            try {
-                sinkWithDlq.pushMessage(messages);
-            } catch (IOException | DeserializerException e) {
-                e.printStackTrace();
-            }
-        });
+        sinkWithDlq.pushMessage(messages);
 
-        thread.start();
+        verify(dlqWriter, times(1)).write(messages);
+        verify(dlqWriter, times(1)).write(dlqRetryMessages);
+        verify(instrumentation, times(1)).captureDLQErrors(any(), any());
 
-        ArgumentCaptor<Callback> callbacks = ArgumentCaptor.forClass(Callback.class);
-        ArgumentCaptor<ProducerRecord> records = ArgumentCaptor.forClass(ProducerRecord.class);
+        verify(instrumentation, times(2)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.TOTAL, ErrorType.DESERIALIZATION_ERROR, 1);
+        verify(instrumentation, times(1)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.SUCCESS, 2);
+        verify(instrumentation, times(2)).incrementCounter(DLQ_RETRY_TOTAL);
+        verify(instrumentation, times(1)).captureGlobalMessageMetrics(Metrics.MessageScope.DLQ, 2);
+    }
 
-        verify(kafkaProducer, timeout(200).times(2)).send(records.capture(), callbacks.capture());
-        List<Callback> calls = callbacks.getAllValues();
-        List<ProducerRecord> actualRecords = records.getAllValues();
+    @Test(expected = IOException.class)
+    public void shouldThrowIOExceptionWhenExceedMaxRetryAttemptsButButHasFailedToBeDlqProcessedMessages() throws IOException {
+        int currentMaxRetryAttempts = 5;
+        when(dlqConfig.getDlqRetryMaxAttempts()).thenReturn(currentMaxRetryAttempts);
+        Message messageWithError = new Message(this.message, new ErrorInfo(new IOException(), ErrorType.DESERIALIZATION_ERROR));
+        ArrayList<Message> messages = new ArrayList<>();
+        messages.add(messageWithError);
+        messages.add(messageWithError);
 
-        calls.get(0).onCompletion(null, null);
-        calls.get(1).onCompletion(null, null);
+        List<Message> dlqRetryMessages = new LinkedList<>();
+        dlqRetryMessages.add(messageWithError);
 
-        assertEquals(expectedRecords(messages.get(0)), actualRecords.get(0));
-        assertEquals(expectedRecords(messages.get(1)), actualRecords.get(1));
+        when(sinkWithRetry.pushMessage(messages)).thenReturn(messages);
+        when(dlqWriter.write(messages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
+
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
+
+        sinkWithDlq.pushMessage(messages);
     }
 
     @Test
-    public void shouldRetryPublishToKafka() throws Exception {
+    public void shouldNotThrowIOExceptionWhenFailOnMaxRetryAttemptDisabled() throws IOException {
+        when(dlqConfig.getDlqRetryMaxAttempts()).thenReturn(2);
+        when(dlqConfig.getDlqRetryFailAfterMaxAttemptEnable()).thenReturn(false);
+        Message messageWithError = new Message(message, new ErrorInfo(new IOException(), ErrorType.SINK_UNKNOWN_ERROR));
         ArrayList<Message> messages = new ArrayList<>();
-        messages.add(message);
-        messages.add(message);
-        when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
+        messages.add(messageWithError);
+        messages.add(messageWithError);
 
-        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, kafkaProducer, "test-topic",
-                instrumentation, backOffProvider);
-        Thread thread = new Thread(() -> {
-            try {
-                sinkWithDlq.pushMessage(messages);
-            } catch (IOException | DeserializerException e) {
-                e.printStackTrace();
-            }
-        });
+        List<Message> dlqRetryMessages = new LinkedList<>();
+        dlqRetryMessages.add(messageWithError);
 
-        thread.start();
+        when(sinkWithRetry.pushMessage(messages)).thenReturn(messages);
+        when(dlqWriter.write(messages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
+        when(dlqWriter.write(dlqRetryMessages)).thenReturn(dlqRetryMessages);
 
-        ArgumentCaptor<Callback> callbacks = ArgumentCaptor.forClass(Callback.class);
-        verify(kafkaProducer, timeout(1000).times(2)).send(any(), callbacks.capture());
-        List<Callback> calls = callbacks.getAllValues();
-        calls.get(0).onCompletion(null, null);
-        calls.get(1).onCompletion(null, new Exception());
-        verify(kafkaProducer, timeout(200).times(3)).send(any(), callbacks.capture());
-        calls = callbacks.getAllValues();
-        calls.get(2).onCompletion(null, null);
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
+        sinkWithDlq.pushMessage(messages);
     }
 
     @Test
-    public void shouldRecordMessagesToRetryQueue() throws Exception {
+    public void shouldCommitOffsetsOfDlqMessagesWhenSinkManageOffset() throws IOException {
+        long timestamp = Instant.parse("2020-01-01T00:00:00Z").toEpochMilli();
+        Message message1 = new Message("123".getBytes(), "abc".getBytes(), "booking", 1, 1, null, 0, timestamp, new ErrorInfo(new IOException(), ErrorType.DESERIALIZATION_ERROR));
+        Message message2 = new Message("123".getBytes(), "abc".getBytes(), "booking", 1, 2, null, 0, timestamp, new ErrorInfo(new IOException(), ErrorType.DESERIALIZATION_ERROR));
+        Message message3 = new Message("123".getBytes(), "abc".getBytes(), "booking", 1, 3, null, 0, timestamp, new ErrorInfo(new IOException(), ErrorType.DESERIALIZATION_ERROR));
+
         ArrayList<Message> messages = new ArrayList<>();
-        CountDownLatch completedLatch = new CountDownLatch(1);
-        messages.add(message);
-        messages.add(message);
-        when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
+        messages.add(message1);
+        messages.add(message2);
+        messages.add(message3);
 
-        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, kafkaProducer, "test-topic",
-                instrumentation, backOffProvider);
-        Thread thread = new Thread(() -> {
-            try {
-                sinkWithDlq.pushMessage(messages);
-                completedLatch.countDown();
-            } catch (IOException | DeserializerException e) {
-                e.printStackTrace();
-            }
-        });
+        ArrayList<Message> dlqProcessedMessages = new ArrayList<>();
+        dlqProcessedMessages.add(message2);
+        dlqProcessedMessages.add(message3);
 
-        thread.start();
+        when(sinkWithRetry.canManageOffsets()).thenReturn(true);
+        when(sinkWithRetry.pushMessage(messages)).thenReturn(dlqProcessedMessages);
+        when(dlqWriter.write(anyList())).thenReturn(new LinkedList<>());
 
-        ArgumentCaptor<Callback> callbacks = ArgumentCaptor.forClass(Callback.class);
-        verify(kafkaProducer, timeout(200).times(2)).send(any(), callbacks.capture());
-        List<Callback> calls = callbacks.getAllValues();
-        calls.get(0).onCompletion(null, null);
-        calls.get(1).onCompletion(null, null);
-        completedLatch.await();
-        verify(instrumentation, times(1)).captureRetryAttempts();
-        verify(instrumentation, times(1)).logInfo("Pushing {} messages to retry queue topic : {}", 2, "test-topic");
-        verify(instrumentation, times(2)).incrementMessageSucceedCount();
-        verify(instrumentation, times(1)).logInfo("Successfully pushed {} messages to {}", 2, "test-topic");
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
+        List<Message> pushResult = sinkWithDlq.pushMessage(messages);
+
+        ArgumentCaptor<List<Message>> argumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(sinkWithRetry, times(1)).addOffsets(eq(SinkWithDlq.DLQ_BATCH_KEY), argumentCaptor.capture());
+        List<Message> value = argumentCaptor.getValue();
+        assertThat(value, Matchers.containsInAnyOrder(dlqProcessedMessages.toArray()));
+
+        verify(sinkWithRetry, times(1)).setCommittable(SinkWithDlq.DLQ_BATCH_KEY);
+        assertEquals(0, pushResult.size());
     }
 
     @Test
-    public void shouldRecordRetriesIfKafkaThrowsException() throws Exception {
+    public void shouldNotRegisterAndCommitOffsetWhenNoMessagesIsProcessedByDLQ() throws IOException {
+        when(dlqWriter.write(anyList())).thenReturn(new LinkedList<>());
         ArrayList<Message> messages = new ArrayList<>();
-        CountDownLatch completedLatch = new CountDownLatch(1);
-        messages.add(message);
-        messages.add(message);
         when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
 
-        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, kafkaProducer, "test-topic",
-                instrumentation, backOffProvider);
-        Thread thread = new Thread(() -> {
-            try {
-                sinkWithDlq.pushMessage(messages);
-                completedLatch.countDown();
-            } catch (IOException | DeserializerException e) {
-                e.printStackTrace();
-            }
-        });
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
 
-        thread.start();
-        Thread.sleep(1000L);
-
-        ArgumentCaptor<Callback> callbacks = ArgumentCaptor.forClass(Callback.class);
-        verify(kafkaProducer, timeout(1000).times(2)).send(any(), callbacks.capture());
-        List<Callback> calls = callbacks.getAllValues();
-        calls.get(0).onCompletion(null, null);
-        calls.get(1).onCompletion(null, new Exception());
-        verify(kafkaProducer, timeout(200).times(3)).send(any(), callbacks.capture());
-        calls = callbacks.getAllValues();
-        calls.get(2).onCompletion(null, null);
-        completedLatch.await();
-
-        verify(instrumentation, times(2)).captureRetryAttempts();
-        verify(instrumentation, times(1)).logInfo("Pushing {} messages to retry queue topic : {}", 1, "test-topic");
-        verify(instrumentation, times(1)).logInfo("Pushing {} messages to retry queue topic : {}", 2, "test-topic");
-        verify(instrumentation, times(2)).incrementMessageSucceedCount();
-        verify(instrumentation, times(1)).incrementMessageFailCount(any(), any());
-        verify(instrumentation, times(2)).logInfo("Successfully pushed {} messages to {}", 1, "test-topic");
+        sinkWithDlq.pushMessage(messages);
+        verify(sinkWithRetry, never()).addOffsets(anyString(), anyList());
+        verify(sinkWithRetry, never()).setCommittable(anyString());
     }
 
-    private ProducerRecord<byte[], byte[]> expectedRecords(Message expectedMessage) {
-        return new ProducerRecord<>("test-topic", null, null, expectedMessage.getLogKey(),
-                expectedMessage.getLogMessage(), expectedMessage.getHeaders());
+    @Test
+    public void shouldWriteDlqMessagesWhenErrorTypesConfigured() throws IOException {
+        Message messageWithError = new Message(this.message, new ErrorInfo(new IOException(), ErrorType.DESERIALIZATION_ERROR));
+        when(dlqWriter.write(anyList())).thenReturn(new LinkedList<>());
+        ArrayList<Message> messages = new ArrayList<>();
+        messages.add(messageWithError);
+        messages.add(new Message(message, new ErrorInfo(null, ErrorType.SINK_UNKNOWN_ERROR)));
+        when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
+
+        List<Message> pushResult = sinkWithDlq.pushMessage(messages);
+        ArgumentCaptor<List<Message>> argumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(dlqWriter, times(1)).write(argumentCaptor.capture());
+        assertEquals(1, argumentCaptor.getValue().size());
+        assertThat(argumentCaptor.getValue(), Matchers.contains(messageWithError));
+        assertEquals(1, pushResult.size());
+    }
+
+    @Test
+    public void shouldInstrumentFailure() throws Exception {
+        ArrayList<Message> messages = new ArrayList<>();
+        messages.add(message);
+        messages.add(message);
+        when(dlqConfig.getDlqRetryFailAfterMaxAttemptEnable()).thenReturn(false);
+        when(message.getErrorInfo()).thenReturn(new ErrorInfo(new RuntimeException(), ErrorType.DESERIALIZATION_ERROR));
+        when(sinkWithRetry.pushMessage(anyList())).thenReturn(messages);
+        when(dlqWriter.write(anyList())).thenReturn(messages);
+
+        SinkWithDlq sinkWithDlq = new SinkWithDlq(sinkWithRetry, dlqWriter, backOffProvider, dlqConfig, errorHandler, instrumentation);
+
+        List<Message> pushResult = sinkWithDlq.pushMessage(messages);
+        verify(dlqWriter, times(10)).write(messages);
+        assertEquals(2, pushResult.size());
+        verify(instrumentation, times(2)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.TOTAL, ErrorType.DESERIALIZATION_ERROR, 1);
+        verify(instrumentation, times(1)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.SUCCESS, 0);
+        verify(instrumentation, times(2)).captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.FAILURE, ErrorType.DESERIALIZATION_ERROR, 1);
+        verify(instrumentation, times(10)).incrementCounter(DLQ_RETRY_TOTAL);
+        verify(instrumentation, times(1)).captureGlobalMessageMetrics(Metrics.MessageScope.DLQ, 0);
     }
 }

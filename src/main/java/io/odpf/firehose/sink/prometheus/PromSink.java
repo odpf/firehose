@@ -65,7 +65,7 @@ public class PromSink extends AbstractHttpSink {
         InputStream inputStream = httpRequest.getEntity().getContent();
         List<String> result = readContent(inputStream);
 
-        getInstrumentation().captureCountWithTags(SINK_MESSAGES_DROP_TOTAL, result.size(), "cause= " + statusCode(response));
+        getInstrumentation().captureCount(SINK_MESSAGES_DROP_TOTAL, result.size(), "cause= " + statusCode(response));
         getInstrumentation().logInfo("Message dropped because of status code: " + statusCode(response));
     }
 

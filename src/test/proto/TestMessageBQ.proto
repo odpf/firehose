@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package odpf.firehose;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/type/date.proto";
+
+option java_multiple_files = true;
+option java_package = "io.odpf.firehose";
+option java_outer_classname = "TestMessageProtoBQ";
+
+message TestKeyBQ {
+  string order_number = 1;
+  string order_url = 2;
+}
+
+message TestMessageBQ {
+  string order_number = 1;
+  string order_url = 2;
+  string order_details = 3;
+  google.protobuf.Timestamp created_at = 4;
+  odpf.firehose.StatusBQ status = 5;
+  int64 discount = 6;
+  bool success = 7;
+  float price = 8;
+  map<string, string> current_state = 9;
+  bytes user_token = 10;
+  google.protobuf.Duration trip_duration = 11;
+  repeated string aliases = 12;
+  google.protobuf.Struct properties = 13;
+  google.type.Date order_date = 14;
+  repeated google.protobuf.Timestamp updated_at = 15;
+  repeated google.protobuf.Struct attributes = 16;
+}
+
+message TestMessageChildBQ {
+  string order_number = 1;
+  bool success = 7;
+}
+
+message TestNestedMessageBQ {
+  string nested_id = 1;
+  TestMessageBQ single_message = 2;
+}
+
+message TestRecursiveMessageBQ {
+  string string_value = 1;
+  float float_value = 2;
+  TestRecursiveMessageBQ recursive_message = 3;
+}
+
+message TestNestedRepeatedMessageBQ {
+  TestMessageBQ single_message = 1;
+  repeated TestMessageBQ repeated_message = 2;
+  int32 number_field = 3;
+  repeated int32 repeated_number_field = 4;
+}
+
+enum StatusBQ {
+  COMPLETED = 0;
+  CANCELLED = 1;
+}

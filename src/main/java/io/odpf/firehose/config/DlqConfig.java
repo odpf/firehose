@@ -1,10 +1,11 @@
 package io.odpf.firehose.config;
 
-public interface DlqConfig extends AppConfig {
+import io.odpf.firehose.config.converter.DlqWriterTypeConverter;
+import io.odpf.firehose.config.converter.ObjectStorageTypeConverter;
+import io.odpf.firehose.objectstorage.ObjectStorageType;
+import io.odpf.firehose.sinkdecorator.dlq.DLQWriterType;
 
-    @Key("DLQ_ATTEMPTS_TO_TRIGGER")
-    @DefaultValue("1")
-    Integer getDlqAttemptsToTrigger();
+public interface DlqConfig extends AppConfig {
 
     @Key("DLQ_KAFKA_ACKS")
     @DefaultValue("all")
@@ -40,4 +41,24 @@ public interface DlqConfig extends AppConfig {
     @Key("DLQ_KAFKA_TOPIC")
     @DefaultValue("firehose-retry-topic")
     String getDlqKafkaTopic();
+
+    @Key("DLQ_WRITER_TYPE")
+    @ConverterClass(DlqWriterTypeConverter.class)
+    @DefaultValue("LOG")
+    DLQWriterType getDlqWriterType();
+
+    @Key("DLQ_OBJECT_STORAGE_TYPE")
+    @DefaultValue("GCS")
+    @ConverterClass(ObjectStorageTypeConverter.class)
+    ObjectStorageType getObjectStorageType();
+
+    @Key("DLQ_RETRY_MAX_ATTEMPTS")
+    @DefaultValue("2147483647")
+    Integer getDlqRetryMaxAttempts();
+
+    @Key("DLQ_RETRY_FAIL_AFTER_MAX_ATTEMPT_ENABLE")
+    @DefaultValue("true")
+    boolean getDlqRetryFailAfterMaxAttemptEnable();
+
+
 }

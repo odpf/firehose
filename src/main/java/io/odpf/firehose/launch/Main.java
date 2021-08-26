@@ -1,7 +1,7 @@
 package io.odpf.firehose.launch;
 
 import io.odpf.firehose.config.KafkaConsumerConfig;
-import io.odpf.firehose.consumer.FirehoseConsumer;
+import io.odpf.firehose.consumer.KafkaConsumer;
 import io.odpf.firehose.consumer.Task;
 import io.odpf.firehose.factory.FirehoseConsumerFactory;
 import io.odpf.firehose.metrics.Instrumentation;
@@ -41,7 +41,7 @@ public class Main {
                 new Instrumentation(statsDReporter, Task.class),
                 taskFinished -> {
 
-                    FirehoseConsumer firehoseConsumer = null;
+                    KafkaConsumer firehoseConsumer = null;
                     try {
                         firehoseConsumer = new FirehoseConsumerFactory(
                                 kafkaConsumerConfig,
@@ -52,7 +52,7 @@ public class Main {
                                 instrumentation.logWarn("Consumer Thread interrupted, leaving the loop!");
                                 break;
                             }
-                            firehoseConsumer.processPartitions();
+                            firehoseConsumer.process();
                         }
                     } catch (Exception e) {
                         instrumentation.captureFatalError(e, "Exception on creating the consumer, exiting the application");
@@ -73,7 +73,7 @@ public class Main {
         instrumentation.logInfo("Exiting main thread");
     }
 
-    private static void ensureThreadInterruptStateIsClearedAndClose(FirehoseConsumer firehoseConsumer, Instrumentation instrumentation) {
+    private static void ensureThreadInterruptStateIsClearedAndClose(KafkaConsumer firehoseConsumer, Instrumentation instrumentation) {
         Thread.interrupted();
         try {
             firehoseConsumer.close();

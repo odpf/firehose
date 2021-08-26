@@ -167,7 +167,7 @@ public class EsSinkTest {
         esSinkMock.pushMessage(this.messages);
         verify(instrumentation, times(2)).logInfo("Not retrying due to response status: {} is under blacklisted status code", "404");
         verify(instrumentation, times(2)).logInfo("Message dropped because of status code: 404");
-        verify(instrumentation, times(2)).incrementCounterWithTags("firehose_sink_messages_drop_total", "cause=NOT_FOUND");
+        verify(instrumentation, times(2)).incrementCounter("firehose_sink_messages_drop_total", "cause=NOT_FOUND");
     }
 
     @Test
@@ -185,7 +185,7 @@ public class EsSinkTest {
         Message messageWithProto = new Message(null, Base64.getDecoder().decode(logMessage.getBytes()), "sample-topic", 0, 100);
         messages.add(messageWithProto);
         List<Message> failedMessages = esSinkMock.pushMessage(this.messages);
-        verify(instrumentation, times(2)).incrementCounterWithTags(any(String.class), any(String.class));
+        verify(instrumentation, times(2)).incrementCounter(any(String.class), any(String.class));
         Assert.assertEquals(3, failedMessages.size());
     }
 

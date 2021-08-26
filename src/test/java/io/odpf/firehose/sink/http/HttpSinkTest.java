@@ -143,20 +143,6 @@ public class HttpSinkTest {
     }
 
     @Test
-    public void shouldCatchIOExceptionInAbstractSinkAndCaptureFailedExecutionTelemetry() throws Exception {
-        when(httpPut.getURI()).thenReturn(new URI("http://dummy.com"));
-        List<HttpEntityEnclosingRequestBase> httpRequests = Arrays.asList(httpPut, httpPost);
-
-        when(request.build(messages)).thenReturn(httpRequests);
-        when(httpClient.execute(any(HttpPut.class))).thenThrow(IOException.class);
-
-        HttpSink httpSink = new HttpSink(instrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
-        httpSink.pushMessage(messages);
-
-        verify(instrumentation, times(1)).captureFailedExecutionTelemetry(any(IOException.class), anyInt());
-    }
-
-    @Test
     public void shouldCloseStencilClient() throws IOException {
         HttpSink httpSink = new HttpSink(instrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
 
@@ -200,7 +186,7 @@ public class HttpSinkTest {
                     + "\nRequest Headers: [Accept: text/plain]"
                     + "\nRequest Body: [{\"key\":\"value1\"},{\"key\":\"value2\"}]");
         verify(instrumentation, times(1)).logInfo("Message dropped because of status code: 500");
-        verify(instrumentation, times(1)).captureCountWithTags("firehose_sink_messages_drop_total", 2, "cause= 500");
+        verify(instrumentation, times(1)).captureCount("firehose_sink_messages_drop_total", 2, "cause= 500");
     }
 
     @Test
@@ -231,7 +217,7 @@ public class HttpSinkTest {
                         + "\nRequest Headers: [Accept: text/plain]"
                         + "\nRequest Body: [{\"key\":\"value\"}]");
         verify(instrumentation, times(1)).logInfo("Message dropped because of status code: 500");
-        verify(instrumentation, times(1)).captureCountWithTags("firehose_sink_messages_drop_total", 1, "cause= 500");
+        verify(instrumentation, times(1)).captureCount("firehose_sink_messages_drop_total", 1, "cause= 500");
     }
 
     @Test
@@ -262,7 +248,7 @@ public class HttpSinkTest {
                         + "\nRequest Headers: [Accept: text/plain]"
                         + "\nRequest Body: [{\"key\":\"value\"}]");
         verify(instrumentation, times(1)).logInfo("Message dropped because of status code: 500");
-        verify(instrumentation, times(1)).captureCountWithTags("firehose_sink_messages_drop_total", 1, "cause= 500");
+        verify(instrumentation, times(1)).captureCount("firehose_sink_messages_drop_total", 1, "cause= 500");
     }
 
     @Test
@@ -313,7 +299,7 @@ public class HttpSinkTest {
         httpSink.prepare(messages);
         httpSink.execute();
         verify(instrumentation, times(1)).logInfo("Message dropped because of status code: 500");
-        verify(instrumentation, times(1)).captureCountWithTags("firehose_sink_messages_drop_total", 2, "cause= 500");
+        verify(instrumentation, times(1)).captureCount("firehose_sink_messages_drop_total", 2, "cause= 500");
     }
 
     @Test(expected = NeedToRetry.class)
@@ -337,7 +323,7 @@ public class HttpSinkTest {
             httpSink.execute();
         } finally {
             verify(instrumentation, times(0)).logInfo("Message dropped because of status code: 500");
-            verify(instrumentation, times(0)).captureCountWithTags("messages.dropped.count", 1, "500");
+            verify(instrumentation, times(0)).captureCount("messages.dropped.count", 1, "500");
         }
     }
 
@@ -360,7 +346,7 @@ public class HttpSinkTest {
         httpSink.prepare(messages);
         httpSink.execute();
         verify(instrumentation, times(0)).logInfo("Message dropped because of status code: 500");
-        verify(instrumentation, times(0)).captureCountWithTags("messages.dropped.count", 1, "200");
+        verify(instrumentation, times(0)).captureCount("messages.dropped.count", 1, "200");
     }
 
     @Test
@@ -382,7 +368,7 @@ public class HttpSinkTest {
         httpSink.prepare(messages);
         httpSink.execute();
         verify(instrumentation, times(0)).logInfo("Message dropped because of status code: 500");
-        verify(instrumentation, times(0)).captureCountWithTags("messages.dropped.count", 1, "201");
+        verify(instrumentation, times(0)).captureCount("messages.dropped.count", 1, "201");
     }
 
     @Test
@@ -405,6 +391,6 @@ public class HttpSinkTest {
         httpSink.prepare(messages);
         httpSink.execute();
 
-        verify(instrumentation, times(1)).captureCountWithTags("firehose_sink_http_response_code_total", 1, "status_code=" + statusLine.getStatusCode(), "url=" + uri.getPath());
+        verify(instrumentation, times(1)).captureCount("firehose_sink_http_response_code_total", 1, "status_code=" + statusLine.getStatusCode(), "url=" + uri.getPath());
     }
 }

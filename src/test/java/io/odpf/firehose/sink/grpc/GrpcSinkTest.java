@@ -4,6 +4,8 @@ package io.odpf.firehose.sink.grpc;
 import com.gojek.de.stencil.client.StencilClient;
 import io.odpf.firehose.consumer.Message;
 import io.odpf.firehose.consumer.TestGrpcResponse;
+import io.odpf.firehose.error.ErrorInfo;
+import io.odpf.firehose.error.ErrorType;
 import io.odpf.firehose.exception.DeserializerException;
 import io.odpf.firehose.metrics.Instrumentation;
 import io.odpf.firehose.sink.grpc.client.GrpcClient;
@@ -68,6 +70,7 @@ public class GrpcSinkTest {
     public void shouldReturnBackListOfFailedMessages() throws IOException, DeserializerException {
         when(message.getLogMessage()).thenReturn(new byte[]{});
         when(message.getHeaders()).thenReturn(new RecordHeaders());
+        when(message.getErrorInfo()).thenReturn(new ErrorInfo(null, ErrorType.DESERIALIZATION_ERROR));
         TestGrpcResponse build = TestGrpcResponse.newBuilder().setSuccess(false).build();
         DynamicMessage response = DynamicMessage.parseFrom(build.getDescriptorForType(), build.toByteArray());
         when(grpcClient.execute(any(), any(RecordHeaders.class))).thenReturn(response);

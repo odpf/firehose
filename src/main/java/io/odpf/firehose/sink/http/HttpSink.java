@@ -66,7 +66,7 @@ public class HttpSink extends AbstractHttpSink {
 
         List<String> result = Arrays.asList(requestBody.replaceAll("^\\[|]$", "").split("},\\s*\\{"));
 
-        getInstrumentation().captureCountWithTags(SINK_MESSAGES_DROP_TOTAL, result.size(), "cause= " + statusCode(response));
+        getInstrumentation().captureCount(SINK_MESSAGES_DROP_TOTAL, result.size(), "cause= " + statusCode(response));
         getInstrumentation().logInfo("Message dropped because of status code: " + statusCode(response));
     }
 }

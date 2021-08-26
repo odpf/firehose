@@ -137,23 +137,6 @@ public class InfluxSinkTest {
     }
 
     @Test
-    public void shouldCaptureFailedExecutionTelemetryIncaseOfExceptions() throws DeserializerException, IOException {
-        expectedPoint = pointBuilder.tag("driver_id", driverId).build();
-        setupFieldNameIndexMappingProperties();
-        setupTagNameIndexMappingProperties();
-        config = ConfigFactory.create(InfluxSinkConfig.class, props);
-        sink = new InfluxSink(instrumentation, "influx", config, new ProtoParser(stencilClient, config.getInputSchemaProtoClass()), client, stencilClient);
-
-        RuntimeException runtimeException = new RuntimeException();
-        doThrow(runtimeException).when(instrumentation).startExecution();
-
-        sink.pushMessage(messages);
-
-        verify(instrumentation, times(1)).captureFailedExecutionTelemetry(runtimeException, messages.size());
-    }
-
-
-    @Test
     public void shouldPushMessagesWithType() throws DeserializerException, IOException {
         expectedPoint = pointBuilder.build();
         setupFieldNameIndexMappingProperties();

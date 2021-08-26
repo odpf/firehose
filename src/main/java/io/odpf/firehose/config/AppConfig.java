@@ -80,7 +80,15 @@ public interface AppConfig extends Config {
     @DefaultValue("60000")
     Integer getRetryExponentialBackoffMaxMs();
 
-    @Key("DLQ_ENABLE")
-    @DefaultValue("false")
-    Boolean isDlqEnable();
+    @Key("RETRY_FAIL_AFTER_MAX_ATTEMPTS_ENABLE")
+    @DefaultValue("true")
+    boolean getRetryFailAfterMaxAttemptsEnable();
+
+    @Key("RETRY_MAX_ATTEMPTS")
+    @DefaultValue("1")
+    Integer getRetryMaxAttempts();
+
+    @Key("INPUT_SCHEMA_PROTO_ALLOW_UNKNOWN_FIELDS_ENABLE")
+    @DefaultValue("true")
+    boolean getInputSchemaProtoAllowUnknownFieldsEnable();
 }

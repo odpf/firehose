@@ -103,7 +103,7 @@ public abstract class AbstractHttpSink extends AbstractSink {
         if (response != null) {
             httpCodeTag = "status_code=" + response.getStatusLine().getStatusCode();
         }
-        getInstrumentation().captureCountWithTags(SINK_HTTP_RESPONSE_CODE_TOTAL, 1, httpCodeTag, urlTag);
+        getInstrumentation().captureCount(SINK_HTTP_RESPONSE_CODE_TOTAL, 1, httpCodeTag, urlTag);
     }
 
 

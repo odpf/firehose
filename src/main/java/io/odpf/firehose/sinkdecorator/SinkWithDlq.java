@@ -1,101 +1,106 @@
 package io.odpf.firehose.sinkdecorator;
 
+import io.odpf.firehose.config.DlqConfig;
 import io.odpf.firehose.consumer.Message;
+import io.odpf.firehose.error.ErrorHandler;
+import io.odpf.firehose.error.ErrorInfo;
+import io.odpf.firehose.error.ErrorScope;
+import io.odpf.firehose.error.ErrorType;
 import io.odpf.firehose.exception.DeserializerException;
 import io.odpf.firehose.metrics.Instrumentation;
+import io.odpf.firehose.metrics.Metrics;
 import io.odpf.firehose.metrics.StatsDReporter;
 import io.odpf.firehose.sink.Sink;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import io.odpf.firehose.sinkdecorator.dlq.DlqWriter;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.Optional;
+
+import static io.odpf.firehose.metrics.Metrics.DLQ_MESSAGES_TOTAL;
+import static io.odpf.firehose.metrics.Metrics.DLQ_RETRY_TOTAL;
 
 /**
  * This Sink pushes failed messages to kafka after retries are exhausted.
  */
 public class SinkWithDlq extends SinkDecorator {
 
-    private Producer<byte[], byte[]> kafkaProducer;
-    private final String topic;
-    private BackOffProvider backOffProvider;
-    private Instrumentation instrumentation;
+    public static final String DLQ_BATCH_KEY = "dlq-batch-key";
+    private final DlqWriter writer;
+    private final BackOffProvider backOffProvider;
+    private final DlqConfig dlqConfig;
+    private final ErrorHandler errorHandler;
 
-    public SinkWithDlq(Sink sink, Producer<byte[], byte[]> kafkaProducer, String topic,
-                       Instrumentation instrumentation, BackOffProvider backOffProvider) {
+    private final Instrumentation instrumentation;
+
+    public SinkWithDlq(Sink sink, DlqWriter writer, BackOffProvider backOffProvider, DlqConfig dlqConfig, ErrorHandler errorHandler, Instrumentation instrumentation) {
         super(sink);
-        this.kafkaProducer = kafkaProducer;
-        this.topic = topic;
+        this.writer = writer;
         this.backOffProvider = backOffProvider;
+        this.errorHandler = errorHandler;
         this.instrumentation = instrumentation;
+        this.dlqConfig = dlqConfig;
     }
 
-    public static SinkWithDlq withInstrumentationFactory(Sink sink, Producer<byte[], byte[]> kafkaProducer, String topic,
-                                                         StatsDReporter statsDReporter, BackOffProvider backOffProvider) {
-        return new SinkWithDlq(sink, kafkaProducer, topic, new Instrumentation(statsDReporter, SinkWithDlq.class), backOffProvider);
+    public static SinkWithDlq withInstrumentationFactory(Sink sink, DlqWriter dlqWriter, BackOffProvider backOffProvider, DlqConfig dlqConfig, ErrorHandler errorHandler, StatsDReporter statsDReporter) {
+        return new SinkWithDlq(sink, dlqWriter, backOffProvider, dlqConfig, errorHandler, new Instrumentation(statsDReporter, SinkWithDlq.class));
     }
 
     /**
      * Pushes all the failed messages to kafka as DLQ.
      *
-     * @param message list of messages to push
+     * @param inputMessages list of messages to push
      * @return list of failed messaged
      * @throws IOException
      * @throws DeserializerException
      */
     @Override
-    public List<Message> pushMessage(List<Message> message) throws IOException, DeserializerException {
-        List<Message> retryQueueMessages = super.pushMessage(message);
-        int attemptCount = 0;
-
-        while (!retryQueueMessages.isEmpty()) {
-            instrumentation.captureRetryAttempts();
-            retryQueueMessages = pushToKafka(retryQueueMessages);
-            backOffProvider.backOff(attemptCount++);
+    public List<Message> pushMessage(List<Message> inputMessages) throws IOException, DeserializerException {
+        List<Message> messages = super.pushMessage(inputMessages);
+        if (messages.isEmpty()) {
+            return messages;
         }
+        Map<Boolean, List<Message>> splitLists = errorHandler.split(messages, ErrorScope.DLQ);
 
+        List<Message> returnedMessages = doDLQ(splitLists.get(Boolean.TRUE));
+
+        if (!returnedMessages.isEmpty() && dlqConfig.getDlqRetryFailAfterMaxAttemptEnable()) {
+            throw new IOException("exhausted maximum number of allowed retry attempts to write messages to DLQ");
+        }
+        if (super.canManageOffsets()) {
+            super.addOffsets(DLQ_BATCH_KEY, messages);
+            super.setCommittable(DLQ_BATCH_KEY);
+        }
+        returnedMessages.addAll(splitLists.get(Boolean.FALSE));
+        return returnedMessages;
+    }
+
+    private List<Message> doDLQ(List<Message> messages) throws IOException {
+        List<Message> retryQueueMessages = new LinkedList<>(messages);
+        retryQueueMessages.forEach(m -> {
+            if (m.getErrorInfo() == null) {
+                m.setErrorInfo(new ErrorInfo(null, ErrorType.DEFAULT_ERROR));
+            }
+            instrumentation.captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.TOTAL, m.getErrorInfo().getErrorType(), 1);
+        });
+        int attemptCount = 1;
+        while (attemptCount <= this.dlqConfig.getDlqRetryMaxAttempts() && !retryQueueMessages.isEmpty()) {
+            instrumentation.incrementCounter(DLQ_RETRY_TOTAL);
+            retryQueueMessages = writer.write(retryQueueMessages);
+            retryQueueMessages.forEach(message -> Optional.ofNullable(message.getErrorInfo())
+                    .flatMap(errorInfo -> Optional.ofNullable(errorInfo.getException()))
+                    .ifPresent(e -> instrumentation.captureDLQErrors(message, e)));
+            backOffProvider.backOff(++attemptCount);
+        }
+        if (!retryQueueMessages.isEmpty()) {
+            instrumentation.logInfo("failed to be processed by DLQ messages: {}", retryQueueMessages.size());
+        }
+        instrumentation.captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.SUCCESS, messages.size() - retryQueueMessages.size());
+        retryQueueMessages.forEach(m -> instrumentation.captureMessageMetrics(DLQ_MESSAGES_TOTAL, Metrics.MessageType.FAILURE, m.getErrorInfo().getErrorType(), 1));
+        instrumentation.captureGlobalMessageMetrics(Metrics.MessageScope.DLQ, messages.size() - retryQueueMessages.size());
         return retryQueueMessages;
-    }
-
-    private ArrayList<Message> pushToKafka(List<Message> failedMessages) {
-        CountDownLatch completedLatch = new CountDownLatch(1);
-        AtomicInteger recordsProcessed = new AtomicInteger();
-        ArrayList<Message> retryMessages = new ArrayList<>();
-
-        instrumentation.logInfo("Pushing {} messages to retry queue topic : {}", failedMessages.size(), topic);
-        for (Message message : failedMessages) {
-            kafkaProducer.send(new ProducerRecord<>(topic, null, null, message.getLogKey(), message.getLogMessage(),
-                    message.getHeaders()), (metadata, e) -> {
-                recordsProcessed.incrementAndGet();
-
-                if (e != null) {
-                    instrumentation.incrementMessageFailCount(message, e);
-                    addToFailedRecords(retryMessages, message);
-                } else {
-                    instrumentation.incrementMessageSucceedCount();
-                }
-                if (recordsProcessed.get() == failedMessages.size()) {
-                    completedLatch.countDown();
-                }
-            });
-        }
-        try {
-            completedLatch.await();
-        } catch (InterruptedException e) {
-            instrumentation.logWarn(e.getMessage());
-            instrumentation.captureNonFatalError(e);
-        }
-        instrumentation.logInfo("Successfully pushed {} messages to {}", failedMessages.size() - retryMessages.size(), topic);
-        return retryMessages;
-    }
-
-    private void addToFailedRecords(ArrayList<Message> retryMessages, Message message) {
-        synchronized (this) {
-            retryMessages.add(message);
-        }
     }
 
     @Override

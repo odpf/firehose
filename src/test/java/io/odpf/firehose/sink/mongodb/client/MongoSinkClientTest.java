@@ -118,7 +118,7 @@ public class MongoSinkClientTest {
 
         verify(instrumentation, times(2)).logWarn("Non-retriable error due to response status: {} is under blacklisted status code", 11000);
         verify(instrumentation, times(2)).logInfo("Message dropped because of status code: 11000");
-        verify(instrumentation, times(2)).incrementCounterWithTags("firehose_sink_messages_drop_total", "cause=Duplicate Key Error");
+        verify(instrumentation, times(2)).incrementCounter("firehose_sink_messages_drop_total", "cause=Duplicate Key Error");
     }
 
     @Test
@@ -133,7 +133,7 @@ public class MongoSinkClientTest {
 
         verify(instrumentation, times(1)).logWarn("Non-retriable error due to response status: {} is under blacklisted status code", 11000);
         verify(instrumentation, times(1)).logInfo("Message dropped because of status code: 11000");
-        verify(instrumentation, times(1)).incrementCounterWithTags("firehose_sink_messages_drop_total", "cause=Duplicate Key Error");
+        verify(instrumentation, times(1)).incrementCounter("firehose_sink_messages_drop_total", "cause=Duplicate Key Error");
     }
 
     @Test
@@ -156,7 +156,7 @@ public class MongoSinkClientTest {
 
         List<BulkWriteError> nonBlacklistedErrors = mongoSinkClient.processRequest(request);
 
-        verify(instrumentation, times(2)).incrementCounterWithTags(any(String.class), any(String.class));
+        verify(instrumentation, times(2)).incrementCounter(any(String.class), any(String.class));
         Assert.assertEquals(1, nonBlacklistedErrors.size());
         Assert.assertEquals(writeErrors.get(1), nonBlacklistedErrors.get(0));
 
@@ -283,7 +283,7 @@ public class MongoSinkClientTest {
         when(mongoCollection.bulkWrite(request)).thenReturn(new BulkWriteResultMock(true, 0, 1, 0));
         mongoSinkClient.processRequest(request);
 
-        verify(instrumentation, times(1)).incrementCounterWithTags(SINK_MESSAGES_DROP_TOTAL, "cause=Primary Key value not found");
+        verify(instrumentation, times(1)).incrementCounter(SINK_MESSAGES_DROP_TOTAL, "cause=Primary Key value not found");
     }
 
     @Test
@@ -295,8 +295,8 @@ public class MongoSinkClientTest {
         when(mongoCollection.bulkWrite(request)).thenReturn(new BulkWriteResultMock(true, 3, 0, 0));
         mongoSinkClient.processRequest(request);
 
-        verify(instrumentation, times(3)).incrementCounterWithTags(SINK_MONGO_INSERTED_TOTAL);
-        verify(instrumentation, times(3)).incrementCounterWithTags(SINK_MONGO_MODIFIED_TOTAL);
+        verify(instrumentation, times(3)).incrementCounter(SINK_MONGO_INSERTED_TOTAL);
+        verify(instrumentation, times(3)).incrementCounter(SINK_MONGO_MODIFIED_TOTAL);
 
     }
 
@@ -310,8 +310,8 @@ public class MongoSinkClientTest {
         when(mongoCollection.bulkWrite(request)).thenReturn(new BulkWriteResultMock(true, 0, 3, 0));
         mongoSinkClient.processRequest(request);
 
-        verify(instrumentation, times(3)).incrementCounterWithTags(SINK_MONGO_UPDATED_TOTAL);
-        verify(instrumentation, times(3)).incrementCounterWithTags(SINK_MONGO_MODIFIED_TOTAL);
+        verify(instrumentation, times(3)).incrementCounter(SINK_MONGO_UPDATED_TOTAL);
+        verify(instrumentation, times(3)).incrementCounter(SINK_MONGO_MODIFIED_TOTAL);
     }
 
     @Test
@@ -324,8 +324,8 @@ public class MongoSinkClientTest {
         when(mongoCollection.bulkWrite(request)).thenReturn(new BulkWriteResultMock(true, 0, 0, 3));
         mongoSinkClient.processRequest(request);
 
-        verify(instrumentation, times(3)).incrementCounterWithTags(SINK_MONGO_INSERTED_TOTAL);
-        verify(instrumentation, times(3)).incrementCounterWithTags(SINK_MONGO_MODIFIED_TOTAL);
+        verify(instrumentation, times(3)).incrementCounter(SINK_MONGO_INSERTED_TOTAL);
+        verify(instrumentation, times(3)).incrementCounter(SINK_MONGO_MODIFIED_TOTAL);
     }
 
 

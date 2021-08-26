@@ -123,43 +123,6 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void shouldCaptureSuccessExecutionTelemetry() {
-        List<Message> messages = Collections.singletonList(message);
-        instrumentation.captureSuccessExecutionTelemetry("test", messages.size());
-        verify(logger, times(1)).info("Pushed {} messages to {}.", messages.size(), "test");
-        verify(statsDReporter, times(1)).captureDurationSince("firehose_sink_response_time_milliseconds", instrumentation.getStartExecutionTime());
-        verify(statsDReporter, times(1)).captureCount("firehose_sink_messages_total", messages.size(), Metrics.SUCCESS_TAG);
-        verify(statsDReporter, times(1)).captureHistogramWithTags(Metrics.SINK_PUSH_BATCH_SIZE_TOTAL, messages.size(), Metrics.SUCCESS_TAG);
-    }
-
-    @Test
-    public void shouldCaptureFailedExecutionTelemetry() {
-        List<Message> messages = Collections.singletonList(message);
-        instrumentation.captureFailedExecutionTelemetry(e, messages.size());
-        verify(statsDReporter, times(1)).captureCount("firehose_sink_messages_total", messages.size(), Metrics.FAILURE_TAG);
-        verify(statsDReporter, times(1)).captureHistogramWithTags(Metrics.SINK_PUSH_BATCH_SIZE_TOTAL, messages.size(), Metrics.FAILURE_TAG);
-    }
-
-    @Test
-    public void shouldIncrementMessageSucceedCount() {
-        instrumentation.incrementMessageSucceedCount();
-        verify(statsDReporter, times(1)).increment(Metrics.DLQ_MESSAGES_TOTAL, Metrics.SUCCESS_TAG);
-    }
-
-    @Test
-    public void shouldCaptureRetryAttempts() {
-        instrumentation.captureRetryAttempts();
-        verify(statsDReporter, times(1)).increment(Metrics.DQL_RETRY_TOTAL);
-    }
-
-    @Test
-    public void shouldIncrementMessageFailCount() {
-        instrumentation.incrementMessageFailCount(message, e);
-        verify(statsDReporter, times(1)).increment(Metrics.DLQ_MESSAGES_TOTAL, Metrics.FAILURE_TAG);
-        verify(logger, times(1)).warn(e.getMessage(), e);
-    }
-
-    @Test
     public void shouldCaptureLifetimeTillSink() {
         List<Message> messages = Collections.singletonList(message);
         instrumentation.capturePreExecutionLatencies(messages);
@@ -192,7 +155,7 @@ public class InstrumentationTest {
         String metric = "test_metric";
         String urlTag = "url=test";
         String httpCodeTag = "status_code=200";
-        instrumentation.captureCountWithTags(metric, 1, httpCodeTag, urlTag);
+        instrumentation.captureCount(metric, 1, httpCodeTag, urlTag);
         verify(statsDReporter, times(1)).captureCount(metric, 1, httpCodeTag, urlTag);
     }
 
@@ -200,7 +163,7 @@ public class InstrumentationTest {
     public void shouldIncrementCounterWithTags() {
         String metric = "test_metric";
         String httpCodeTag = "status_code=200";
-        instrumentation.incrementCounterWithTags(metric, httpCodeTag);
+        instrumentation.incrementCounter(metric, httpCodeTag);
         verify(statsDReporter, times(1)).increment(metric, httpCodeTag);
     }
 

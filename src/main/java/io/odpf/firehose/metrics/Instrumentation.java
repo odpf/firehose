@@ -1,6 +1,7 @@
 package io.odpf.firehose.metrics;
 
 import io.odpf.firehose.consumer.Message;
+import io.odpf.firehose.error.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,19 +18,8 @@ import static io.odpf.firehose.metrics.Metrics.*;
  */
 public class Instrumentation {
 
-    private StatsDReporter statsDReporter;
-    private Logger logger;
-
-
-    /**
-     * Gets start execution time.
-     *
-     * @return the start execution time
-     */
-    public Instant getStartExecutionTime() {
-        return startExecutionTime;
-    }
-
+    private final StatsDReporter statsDReporter;
+    private final Logger logger;
     private Instant startExecutionTime;
 
     /**
@@ -52,6 +42,15 @@ public class Instrumentation {
     public Instrumentation(StatsDReporter statsDReporter, Class clazz) {
         this.statsDReporter = statsDReporter;
         this.logger = LoggerFactory.getLogger(clazz);
+    }
+
+    /**
+     * Gets start execution time.
+     *
+     * @return the start execution time
+     */
+    public Instant getStartExecutionTime() {
+        return startExecutionTime;
     }
     // =================== LOGGING ===================
 
@@ -139,44 +138,51 @@ public class Instrumentation {
     }
 
     /**
-     * Captures successful executions.
+     * Logs total messages executions.
      *
      * @param sinkType        the sink type
      * @param messageListSize the message list size
      */
-    public void captureSuccessExecutionTelemetry(String sinkType, Integer messageListSize) {
-        logger.info("Pushed {} messages to {}.", messageListSize, sinkType);
+    public void captureSinkExecutionTelemetry(String sinkType, Integer messageListSize) {
+        logger.info("Processed {} messages in {}.", messageListSize, sinkType);
         statsDReporter.captureDurationSince(SINK_RESPONSE_TIME_MILLISECONDS, this.startExecutionTime);
-        statsDReporter.captureCount(SINK_MESSAGES_TOTAL, messageListSize, SUCCESS_TAG);
-        statsDReporter.captureHistogramWithTags(SINK_PUSH_BATCH_SIZE_TOTAL, messageListSize, SUCCESS_TAG);
     }
 
     /**
-     * Captures failed executions.
-     *
-     * @param exception       the reported exception
-     * @param messageListSize the message list size
+     * @param totalMessages total messages
      */
-    public void captureFailedExecutionTelemetry(Exception exception, Integer messageListSize) {
-
-        captureNonFatalError(exception, "caught {} {}", exception.getClass(), exception.getMessage());
-        statsDReporter.captureCount(SINK_MESSAGES_TOTAL, messageListSize, FAILURE_TAG);
-        statsDReporter.captureHistogramWithTags(SINK_PUSH_BATCH_SIZE_TOTAL, messageListSize, FAILURE_TAG);
+    public void captureMessageBatchSize(int totalMessages) {
+        statsDReporter.captureHistogramWithTags(SINK_PUSH_BATCH_SIZE_TOTAL, totalMessages);
     }
 
-    // =================== RetryTelemetry ======================
-
-    public void incrementMessageSucceedCount() {
-        statsDReporter.increment(DLQ_MESSAGES_TOTAL, SUCCESS_TAG);
+    public void captureErrorMetrics(List<ErrorType> errors) {
+        errors.forEach(this::captureErrorMetrics);
     }
 
-    public void captureRetryAttempts() {
-        statsDReporter.increment(DQL_RETRY_TOTAL);
+    public void captureErrorMetrics(ErrorType errorType) {
+        statsDReporter.captureCount(ERROR_MESSAGES_TOTAL, 1, String.format(ERROR_TYPE_TAG, errorType.name()));
     }
 
-    public void incrementMessageFailCount(Message message, Exception e) {
-        statsDReporter.increment(DLQ_MESSAGES_TOTAL, FAILURE_TAG);
-        captureNonFatalError(e, "Unable to send record with key {} and message {} ", message.getLogKey(), message.getLogMessage());
+    // =================== Retry and DLQ Telemetry ======================
+
+    public void captureMessageMetrics(String metric, MessageType type, ErrorType errorType, int counter) {
+        if (errorType != null) {
+            statsDReporter.captureCount(metric, counter, String.format(MESSAGE_TYPE_TAG, type.name()), String.format(ERROR_TYPE_TAG, errorType.name()));
+        } else {
+            statsDReporter.captureCount(metric, counter, String.format(MESSAGE_TYPE_TAG, type.name()));
+        }
+    }
+
+    public void captureGlobalMessageMetrics(MessageScope scope, int counter) {
+        statsDReporter.captureCount(GLOBAL_MESSAGES_TOTAL, counter, String.format(MESSAGE_SCOPE_TAG, scope.name()));
+    }
+
+    public void captureMessageMetrics(String metric, MessageType type, int counter) {
+        captureMessageMetrics(metric, type, null, counter);
+    }
+
+    public void captureDLQErrors(Message message, Exception e) {
+        captureNonFatalError(e, "Unable to send record with key {} and message {} to DLQ", message.getLogKey(), message.getLogMessage());
     }
 
     // ===================== Latency / LifetimeTillSink =====================
@@ -188,8 +194,12 @@ public class Instrumentation {
         });
     }
 
-    public void captureDurationSince(String metric, Instant instant) {
-        statsDReporter.captureDurationSince(metric, instant);
+    public void captureDurationSince(String metric, Instant instant, String... tags) {
+        statsDReporter.captureDurationSince(metric, instant, tags);
+    }
+
+    public void captureDuration(String metric, long duration, String... tags) {
+        statsDReporter.captureDuration(metric, duration, tags);
     }
 
     public void captureSleepTime(String metric, int sleepTime) {
@@ -198,16 +208,24 @@ public class Instrumentation {
 
     // ===================== CountTelemetry =================
 
-    public void captureCountWithTags(String metric, Integer count, String... tags) {
+    public void captureCount(String metric, Integer count, String... tags) {
         statsDReporter.captureCount(metric, count, tags);
     }
 
-    public void incrementCounterWithTags(String metric, String... tags) {
+    public void captureCount(String metric, Long count, String... tags) {
+        statsDReporter.captureCount(metric, count, tags);
+    }
+
+    public void incrementCounter(String metric, String... tags) {
         statsDReporter.increment(metric, tags);
     }
 
     public void incrementCounter(String metric) {
         statsDReporter.increment(metric);
+    }
+
+    public void captureValue(String metric, Integer value, String... tags) {
+        statsDReporter.gauge(metric, value, tags);
     }
 
     // ===================== closing =================

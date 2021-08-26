@@ -81,14 +81,27 @@ dependencies {
     compile group: 'com.google.gradle', name: 'osdetector-gradle-plugin', version: '1.2.1'
     compile group: 'org.apache.ivy', name: 'ivy', version: '2.2.0'
     compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.8'
+    compile (group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.1.0') {
+        exclude group: "log4j", module: "log4j"
+        exclude group: "org.slf4j", module:"slf4j-log4j12"
+    }
+    compile group: 'com.gojek.parquet', name: 'parquet-protobuf', version: '1.11.9'
+    compile 'com.gojek.parquet:parquet-hadoop:1.11.9'
+    compile group: 'com.github.os72', name: 'protobuf-dynamic', version: '1.0.1'
+    compile group: 'com.gojek', name: 'stencil', version: '4.2.1'
+    implementation platform('com.google.cloud:libraries-bom:20.5.0')
+    compile 'com.google.cloud:google-cloud-storage:1.114.0'
+    compile 'com.google.cloud:google-cloud-bigquery:1.115.0'
 
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'org.mockito:mockito-core:2.0.99-beta'
     testCompile "com.github.tomakehurst:wiremock:2.3.1"
     testCompile group: 'io.opentracing', name: 'opentracing-mock', version: '0.33.0'
     testCompile group: 'org.mock-server', name: 'mockserver-netty', version: '3.10.5'
     testCompile gradleTestKit()
+    testCompile 'org.junit.jupiter:junit-jupiter:5.7.0'
 }
 
 protobuf {
@@ -104,6 +117,12 @@ protobuf {
     generateProtoTasks {
         all()*.plugins {
             grpc {}
+        }
+        all().each { task ->
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.includeSourceInfo = false
+            task.descriptorSetOptions.includeImports = true
+            task.descriptorSetOptions.path = "$projectDir/src/test/resources/__files/descriptors.bin"
         }
     }
 }
