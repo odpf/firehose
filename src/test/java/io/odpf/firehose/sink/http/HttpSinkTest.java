@@ -407,4 +407,28 @@ public class HttpSinkTest {
 
         verify(instrumentation, times(1)).captureCountWithTags("firehose_sink_http_response_code_total", 1, "status_code=" + statusLine.getStatusCode(), "url=" + uri.getPath());
     }
+
+    @Test
+    public void shouldLogResponseBodyInCaseOfNonNullResponse() throws Exception {
+        when(response.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+
+        List<HttpEntityEnclosingRequestBase> httpRequests = Collections.singletonList(httpPut);
+
+        when(httpPut.getMethod()).thenReturn("PUT");
+        when(httpPut.getURI()).thenReturn(new URI("http://dummy.com"));
+        when(httpPut.getAllHeaders()).thenReturn(new Header[]{new BasicHeader("Accept", "text/plain")});
+        when(httpPut.getEntity()).thenReturn(httpEntity);
+        when(httpEntity.getContent()).thenReturn(new StringInputStream("[{\"key\":\"value1\"},{\"key\":\"value2\"}]"));
+        when(request.build(messages)).thenReturn(httpRequests);
+        when(httpClient.execute(httpPut)).thenReturn(response);
+        when(response.getAllHeaders()).thenReturn(new Header[]{new BasicHeader("Accept", "text/plain")});
+
+        HttpSink httpSink = new HttpSink(instrumentation, request, httpClient, stencilClient,
+                retryStatusCodeRange, requestLogStatusCodeRanges);
+        httpSink.prepare(messages);
+        httpSink.execute();
+        verify(instrumentation, times(1)).logDebug(
+                eq("Response Body: {}"), any(SerializableHttpResponse.class));
+    }
 }

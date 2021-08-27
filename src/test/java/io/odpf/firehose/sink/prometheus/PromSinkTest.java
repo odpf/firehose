@@ -300,8 +300,6 @@ public class PromSinkTest {
     public void shouldReadSnappyCompressedContent() throws Exception {
         String body = "[timeseries {\n  labels {\n    name: \"__name__\"\n    value: \"test_metric\"\n  }\n  samples {\n    value: 10.0\n    timestamp_ms: 1000000\n  }\n}\n]";
         InputStream inputStream = new ByteArrayInputStream(Snappy.compress(writeRequest.toByteArray()));
-        when(httpPost.getEntity()).thenReturn(httpEntity);
-        when(httpEntity.getContent()).thenReturn(inputStream);
 
         PromSink promSink = new PromSink(instrumentation, request, httpClient, stencilClient,
                 retryStatusCodeRange, requestLogStatusCodeRanges);
