@@ -15,7 +15,7 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id "com.google.protobuf" version "0.8.7"
-    id 'nebula.ospackage' version '3.5.0'
+    id 'nebula.ospackage' version '8.6.3'
     id 'io.franzbecker.gradle-lombok' version '1.14'
     id 'maven-publish'
 }
@@ -51,44 +51,44 @@ private Properties loadEnv() {
 def mainClassName = "io.odpf.firehose.launch.Main"
 
 dependencies {
-    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.1.0'
-    compile group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.1.0'
-    compile group: 'com.newrelic.agent.java', name: 'newrelic-api', version: '3.31.1'
-    compile group: 'com.timgroup', name: 'java-statsd-client', version: '3.1.0'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
-    compile group: 'org.aeonbits.owner', name: 'owner', version: '1.0.9'
-    compile group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
-    compile group: 'com.google.guava', name: 'guava', version: '23.5-jre'
-    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
-    compile group: 'com.samskivert', name: 'jmustache', version: '1.13'
-    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
-    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.4.0'
-    compile group: 'org.apache.commons', name: 'commons-jexl', version: '2.1'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
-    compile group: 'com.gojek', name: 'stencil', version: '4.2.0' exclude group: 'org.slf4j'
-    compile group: 'org.influxdb', name: 'influxdb-java', version: '2.5'
-    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
-    compile group: 'redis.clients', name: 'jedis', version: '3.0.1'
-    compile group: 'io.opentracing', name: 'opentracing-api', version: '0.33.0'
-    compile group: 'io.opentracing.contrib', name: 'opentracing-kafka-client', version: '0.1.4'
-    compile group: 'io.jaegertracing', name: 'jaeger-client', version: '1.0.0'
-    compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: '6.3.1'
-    compile 'io.confluent:monitoring-interceptors:3.0.0'
-    compile "io.grpc:grpc-all:1.18.0"
-    compile group: 'org.jfrog.buildinfo', name: 'build-info-extractor', version: '2.6.3'
-    compile group: 'com.google.gradle', name: 'osdetector-gradle-plugin', version: '1.2.1'
-    compile group: 'org.apache.ivy', name: 'ivy', version: '2.2.0'
-    compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.8'
+    implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.1.0'
+    implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.1.0'
+    implementation group: 'com.newrelic.agent.java', name: 'newrelic-api', version: '3.31.1'
+    implementation group: 'com.timgroup', name: 'java-statsd-client', version: '3.1.0'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+    implementation group: 'org.aeonbits.owner', name: 'owner', version: '1.0.9'
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
+    implementation group: 'com.google.guava', name: 'guava', version: '23.5-jre'
+    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
+    implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
+    implementation group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
+    implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '2.4.0'
+    implementation group: 'org.apache.commons', name: 'commons-jexl', version: '2.1'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.7'
+    implementation group: 'com.gojek', name: 'stencil', version: '4.2.0' exclude group: 'org.slf4j'
+    implementation group: 'org.influxdb', name: 'influxdb-java', version: '2.5'
+    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
+    implementation group: 'redis.clients', name: 'jedis', version: '3.0.1'
+    implementation group: 'io.opentracing', name: 'opentracing-api', version: '0.33.0'
+    implementation group: 'io.opentracing.contrib', name: 'opentracing-kafka-client', version: '0.1.4'
+    implementation group: 'io.jaegertracing', name: 'jaeger-client', version: '1.0.0'
+    implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: '6.3.1'
+    implementation 'io.confluent:monitoring-interceptors:3.0.0'
+    implementation "io.grpc:grpc-all:1.18.0"
+    implementation group: 'org.jfrog.buildinfo', name: 'build-info-extractor', version: '2.6.3'
+    implementation group: 'com.google.gradle', name: 'osdetector-gradle-plugin', version: '1.2.1'
+    implementation group: 'org.apache.ivy', name: 'ivy', version: '2.2.0'
+    implementation group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.8'
 
 
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile 'org.mockito:mockito-core:2.0.99-beta'
-    testCompile "com.github.tomakehurst:wiremock:2.3.1"
-    testCompile group: 'io.opentracing', name: 'opentracing-mock', version: '0.33.0'
-    testCompile group: 'org.mock-server', name: 'mockserver-netty', version: '3.10.5'
-    testCompile gradleTestKit()
+    testImplementation group: 'junit', name: 'junit', version: '4.11'
+    testImplementation 'org.mockito:mockito-core:2.0.99-beta'
+    testImplementation "com.github.tomakehurst:wiremock:2.3.1"
+    testImplementation group: 'io.opentracing', name: 'opentracing-mock', version: '0.33.0'
+    testImplementation group: 'org.mock-server', name: 'mockserver-netty', version: '3.10.5'
+    testImplementation gradleTestKit()
 }
 
 protobuf {
