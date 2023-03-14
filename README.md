@@ -1,9 +1,9 @@
 # Firehose
 
-![build workflow](https://github.com/odpf/firehose/actions/workflows/build.yml/badge.svg)
-![package workflow](https://github.com/odpf/firehose/actions/workflows/package.yml/badge.svg)
+![build workflow](https://github.com/goto/firehose/actions/workflows/build.yml/badge.svg)
+![package workflow](https://github.com/goto/firehose/actions/workflows/package.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache)](LICENSE)
-[![Version](https://img.shields.io/github/v/release/odpf/firehose?logo=semantic-release)](Version)
+[![Version](https://img.shields.io/github/v/release/goto/firehose?logo=semantic-release)](Version)
 
 Firehose is a cloud native service for delivering real-time streaming data to destinations such as service endpoints (HTTP or GRPC) & managed databases (Postgres, InfluxDB, Redis, Elasticsearch, Prometheus and MongoDB). With Firehose, you don't need to write applications or manage resources. It can be scaled up to match the throughput of your data. If your data is present in Kafka, Firehose delivers it to the destination(SINK) that you specified.
 
@@ -47,28 +47,28 @@ Explore the following resources to get started with Firehose:
 
 ## Run with Docker
 
-Use the docker hub to download firehose [docker image](https://hub.docker.com/r/odpf/firehose/). You need to have docker installed in your system.
+Use the docker hub to download firehose [docker image](https://hub.docker.com/r/gotocompany/firehose/). You need to have docker installed in your system.
 
 ```
 # Download docker image from docker hub
-$ docker pull odpf/firehose
+$ docker pull gotocompany/firehose
 
 # Run the following docker command for a simple log sink.
-$ docker run -e SOURCE_KAFKA_BROKERS=127.0.0.1:6667 -e SOURCE_KAFKA_CONSUMER_GROUP_ID=kafka-consumer-group-id -e SOURCE_KAFKA_TOPIC=sample-topic -e SINK_TYPE=log -e SOURCE_KAFKA_CONSUMER_CONFIG_AUTO_OFFSET_RESET=latest -e INPUT_SCHEMA_PROTO_CLASS=com.github.firehose.sampleLogProto.SampleLogMessage -e SCHEMA_REGISTRY_STENCIL_ENABLE=true -e SCHEMA_REGISTRY_STENCIL_URLS=http://localhost:9000/artifactory/proto-descriptors/latest odpf/firehose:latest
+$ docker run -e SOURCE_KAFKA_BROKERS=127.0.0.1:6667 -e SOURCE_KAFKA_CONSUMER_GROUP_ID=kafka-consumer-group-id -e SOURCE_KAFKA_TOPIC=sample-topic -e SINK_TYPE=log -e SOURCE_KAFKA_CONSUMER_CONFIG_AUTO_OFFSET_RESET=latest -e INPUT_SCHEMA_PROTO_CLASS=com.github.firehose.sampleLogProto.SampleLogMessage -e SCHEMA_REGISTRY_STENCIL_ENABLE=true -e SCHEMA_REGISTRY_STENCIL_URLS=http://localhost:9000/artifactory/proto-descriptors/latest/gotocompany/firehose:latest
 ```
 
 **Note:** Make sure your protos (.jar file) are located in `work-dir`, this is required for Filter functionality to work.
 
 ## Run with Kubernetes
 
-- Create a firehose deployment using the helm chart available [here](https://github.com/odpf/charts/tree/main/stable/firehose)
+- Create a firehose deployment using the helm chart available [here](https://github.com/goto/charts/tree/main/stable/firehose)
 - Deployment also includes telegraf container which pushes stats metrics
 
 ## Running locally
 
 ```sh
 # Clone the repo
-$ git clone https://github.com/odpf/firehose.git
+$ git clone https://github.com/goto/firehose.git
 
 # Build the jar
 $ ./gradlew clean build
@@ -101,11 +101,11 @@ Development of Firehose happens in the open on GitHub, and we are grateful to th
 
 Read our [contributing guide](docs/docs/contribute/contribution.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Firehose.
 
-To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first issues](https://github.com/odpf/firehose/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started.
+To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first issues](https://github.com/goto/firehose/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started.
 
 ## Credits
 
-This project exists thanks to all the [contributors](https://github.com/odpf/firehose/graphs/contributors).
+This project exists thanks to all the [contributors](https://github.com/goto/firehose/graphs/contributors).
 
 ## License
 

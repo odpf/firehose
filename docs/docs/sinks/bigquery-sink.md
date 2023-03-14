@@ -1,7 +1,7 @@
 # BigQuery
 
 Bigquery Sink has several responsibilities, first creation of bigquery table and dataset when they are not exist, second update the bigquery table schema based on the latest schema defined in stencil or infer from incoming data, third translate incoming messages into bigquery records and insert them to bigquery tables.
-Bigquery utilise Bigquery [Streaming API](https://cloud.google.com/bigquery/streaming-data-into-bigquery) to insert record into bigquery tables. For more info on the sink refer to [Depot Bigquery sink documentation](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md)
+Bigquery utilise Bigquery [Streaming API](https://cloud.google.com/bigquery/streaming-data-into-bigquery) to insert record into bigquery tables. For more info on the sink refer to [Depot Bigquery sink documentation](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md)
 
 ## Asynchronous consumer mode
 
@@ -18,35 +18,35 @@ Firehose collect all the offset sort them and only commit the latest continuous 
 This will ensure all the offset being committed after messages successfully processed even when some messages are being re processed by retry handler or when the insert operation took a long time.
 
 ## Configurations
-For Bigquery sink in Firehose we need to set first \(`SINK_TYPE`=`bigquery`\). There are some generic configs which are common across different sink types which need to be set example: kafka consumer configs, the generic ones are mentioned in [generic.md](../advance/generic.md). Bigquery sink specific configs are mentioned in depot [Depot-configuration/bigquery-sink.md section](https://github.com/odpf/depot/blob/main/docs/reference/configuration/bigquery-sink.md)
+For Bigquery sink in Firehose we need to set first \(`SINK_TYPE`=`bigquery`\). There are some generic configs which are common across different sink types which need to be set example: kafka consumer configs, the generic ones are mentioned in [generic.md](../advance/generic.md). Bigquery sink specific configs are mentioned in depot [Depot-configuration/bigquery-sink.md section](https://github.com/goto/depot/blob/main/docs/reference/configuration/bigquery-sink.md)
 
 
 ## Bigquery table schema update
-Refer to [Depot-bigquery.md#bigquery-table-schema-update section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#bigquery-table-schema-update)
+Refer to [Depot-bigquery.md#bigquery-table-schema-update section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#bigquery-table-schema-update)
 
 ## Protobuf and BigQuery table type mapping
 For type conversion between protobuf to bigquery type. Please refer to
-[Depot-bigquery.md#protobuf-bigquery-table-type-mapping section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#protobuf---bigquery-table-type-mapping)
+[Depot-bigquery.md#protobuf-bigquery-table-type-mapping section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#protobuf---bigquery-table-type-mapping)
 
 ## Partitioning
 Bigquery Sink supports creation of table with partition configuration.
-For more information refer to [Depot-bigquery.md#partitioning section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#partitioning)
+For more information refer to [Depot-bigquery.md#partitioning section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#partitioning)
 
 ## Clustering
 Bigquery Sink supports for creating and modifying clustered or unclustered table with clustering configuration.
-For more information refer to [Depot-bigquery.md#clustering section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#clustering)
+For more information refer to [Depot-bigquery.md#clustering section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#clustering)
 
 ## Kafka Metadata
-For data quality checking purpose sometimes kafka metadata need to be added on the record. For more information refer to [Depot-bigquery.md#metadata sectionn](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#metadata)
+For data quality checking purpose sometimes kafka metadata need to be added on the record. For more information refer to [Depot-bigquery.md#metadata sectionn](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#metadata)
 
 ## Default columns for json data type
-With dynamic schema for json we need to create table with some default columns, example like parition key needs to be set during creation of the table. Sample config `SINK_BIGQUERY_DEFAULT_COLUMNS =event_timestamp=timestamp`. For more information refer to [Depot-bigquery.md#default-columns-for-json-data-type section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#default-columns-for-json-data-type)
+With dynamic schema for json we need to create table with some default columns, example like parition key needs to be set during creation of the table. Sample config `SINK_BIGQUERY_DEFAULT_COLUMNS =event_timestamp=timestamp`. For more information refer to [Depot-bigquery.md#default-columns-for-json-data-type section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#default-columns-for-json-data-type)
 
 ## Error handling
-The response can contain multiple errors which will be sent to the firehose from depot. Please refer to [Depot-bigquery.md#errors-handling section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#errors-handling)
+The response can contain multiple errors which will be sent to the firehose from depot. Please refer to [Depot-bigquery.md#errors-handling section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#errors-handling)
 
 
 ## Google Cloud Bigquery IAM Permission
-Several IAM permission is required for bigquery sink to run properly. For more detail refer to [Depot-bigquery.md#google-cloud-bigquery-iam-permission section](https://github.com/odpf/depot/blob/main/docs/sinks/bigquery.md#google-cloud-bigquery-iam-permission)
+Several IAM permission is required for bigquery sink to run properly. For more detail refer to [Depot-bigquery.md#google-cloud-bigquery-iam-permission section](https://github.com/goto/depot/blob/main/docs/sinks/bigquery.md#google-cloud-bigquery-iam-permission)
 
 

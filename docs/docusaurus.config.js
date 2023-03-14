@@ -6,12 +6,12 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 (module.exports = {
   title: 'Firehose',
   tagline: 'Load streaming data from Kafka to data stores, data lakes, and analytical storage systems.',
-  url: 'https://odpf.github.io/',
+  url: 'https://goto.github.io/',
   baseUrl: '/firehose/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'assets/favicon.ico',
-  organizationName: 'ODPF',
+  organizationName: 'GOTO',
   projectName: 'firehose',
 
   presets: [
@@ -24,7 +24,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/odpf/firehose/edit/master/docs/',
+          editUrl: 'https://github.com/goto/firehose/edit/master/docs/',
           sidebarCollapsed: true,
           breadcrumbs: false,
         },
@@ -64,7 +64,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
             className: 'header-slack-link',
           },
           {
-            href: 'https://github.com/odpf/firehose',
+            href: 'https://github.com/goto/firehose',
             className: 'navbar-item-github',
             position: 'right',
           },
@@ -80,7 +80,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
       },
       announcementBar: {
         id: 'star-repo',
-        content: '⭐️ If you like Firehose, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/odpf/firehose">GitHub</a>! ⭐',
+        content: '⭐️ If you like Firehose, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/goto/firehose">GitHub</a>! ⭐',
         backgroundColor: '#222',
         textColor: '#eee',
         isCloseable: true,

@@ -16,7 +16,7 @@ Service-level Indicators \(SLIs\) are the measurements used to calculate the per
 * [HTTP Sink](metrics.md#http-sink)
 * [Filter](metrics.md#filter)
 * [Blob Sink](metrics.md#blob-sink)
-* [Bigquery Sink](https://github.com/odpf/depot/blob/main/docs/reference/metrics.md#bigquery-sink)
+* [Bigquery Sink](https://github.com/goto/depot/blob/main/docs/reference/metrics.md#bigquery-sink)
 
 ## Type Details
 

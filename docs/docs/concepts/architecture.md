@@ -40,7 +40,7 @@ _**Sink**_
 - All the existing sink types follow the same contract/lifecycle defined in `AbstractSink.java`. It consists of two stages:
   - Prepare: Transformation over-filtered messages’ list to prepare the sink-specific insert/update client requests.
   - Execute: Requests created in the Prepare stage are executed at this step and a list of failed messages is returned \(if any\) for retry.
-- Underlying implementation of AbstractSink can use implementation present in [depot](https://github.com/odpf/depot).
+- Underlying implementation of AbstractSink can use implementation present in [depot](https://github.com/goto/depot).
 - If the batch has any failures, Firehose will retry to push the failed messages to the sink
 
 _**SinkPool**_

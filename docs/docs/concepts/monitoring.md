@@ -71,11 +71,11 @@ Lastly, set up Telegraf to send metrics to InfluxDB, following the corresponding
 
 #### Firehose deployed on Kubernetes _\*\*_
 
-1. Follow[ this guide](https://github.com/odpf/charts/tree/main/stable/firehose#readme) for deploying Firehose on a Kubernetes cluster using a Helm chart.
-2. Configure the following parameters in the default [values.yaml](https://github.com/odpf/charts/blob/main/stable/firehose/values.yaml) file and run -
+1. Follow[ this guide](https://github.com/goto/charts/tree/main/stable/firehose#readme) for deploying Firehose on a Kubernetes cluster using a Helm chart.
+2. Configure the following parameters in the default [values.yaml](https://github.com/goto/charts/blob/main/stable/firehose/values.yaml) file and run -
 
 ```text
-$ helm install my-release -f values.yaml odpf/firehose
+$ helm install my-release -f values.yaml goto/firehose
 ```
 
 | Key                                              | Type   | Default                     | Description                                   |

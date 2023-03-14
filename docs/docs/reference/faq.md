@@ -702,7 +702,7 @@ No, the Kafka consumer used in Firehose doesn't support SSL.
 
 When Firehose starts, it creates as many Kafka consumers as specified by the config **APPLICATION_THREAD_COUNT** (
 default set to 1). Each consumer runs on a separate thread. Please
-look [here](https://github.com/odpf/firehose/blob/main/docs/reference/configuration.md#kafka-consumer) for more details
+look [here](https://github.com/goto/firehose/blob/main/docs/reference/configuration.md#kafka-consumer) for more details
 on how to configure the Kafka consumer.
 
 #### Can I change the consumer group name or reset it ? Overall, how do I handle my consumer group operations?
@@ -710,7 +710,7 @@ on how to configure the Kafka consumer.
 Yes, the Kafka consumer group name can be changed by specifying the following configuration **SOURCE_KAFKA_CONSUMER_GROUP_ID**. The Kafka consumer in Firehose can also be reset. However, the default behaviour is
 currently set to read from the latest offset. To know further details on how to tune the Kafka consumer group, you can
 have a look at the Kafka consumer configurations already exposed by
-Firehose [here](https://github.com/odpf/firehose/blob/main/docs/reference/configuration/kafka-consumer-1.md#kafka-consumer).
+Firehose [here](https://github.com/goto/firehose/blob/main/docs/reference/configuration/kafka-consumer-1.md#kafka-consumer).
 
 #### What are the advantages of Firehose over Kafka connect ?
 
@@ -742,7 +742,7 @@ requires no ongoing administration.
 #### Can I do any transformations before sending data to sink, for example filtering ?
 
 Yes, Firehose provides JEXL based filters based on the fields in key or message of the Kafka record. Read
-the [Filters](https://github.com/odpf/firehose/blob/main/docs/concepts/filters.md) section for further details.
+the [Filters](https://github.com/goto/firehose/blob/main/docs/concepts/filters.md) section for further details.
 
 #### How to optimise parallelism based on input rate of Kafka messages? Does it depend on sink ?
 
@@ -761,12 +761,12 @@ messages are pushed to DLQ queue with backoff. If push fails and DLQ is disabled
 Starting with version 0.2, Firehose also provides the ability to tag different error types under a specific scope: `DLQ`
 , `RETRY` or `FAIL`. This enables Firehose to effectively determine at runtime as to what should be the strategy when a
 particular error is encountered. For more details, please look at `ErrorConfig.java` class and classes in
-the `io.odpf.firehose.error` package.
+the `come.gotocompany.firehose.error` package.
 
 #### Which Kafka client configs are available ?
 
 Firehose provides various Kafka client configurations.
-Refer [Kafka Consumer Configurations](https://github.com/odpf/firehose/blob/main/docs/reference/configuration/kafka-consumer-1.md)
+Refer [Kafka Consumer Configurations](https://github.com/goto/firehose/blob/main/docs/reference/configuration/kafka-consumer-1.md)
 section.
 
 #### What all data formats are supported?
@@ -794,21 +794,21 @@ ProtoDescriptor class that the Firehose deployment should use to deserialise raw
 the environment variables **SCHEMA_REGISTRY_STENCIL_URLS** and **INPUT_SCHEMA_PROTO_CLASS**  respectively.
 
 The Proto Descriptor set of the Kafka messages must be uploaded to the Stencil server.
-Refer  [this guide](https://github.com/odpf/stencil/blob/master/docs/guides/quick_start.md)  on how to setup and
+Refer  [this guide](https://github.com/goto/stencil/blob/master/docs/guides/quick_start.md)  on how to setup and
 configure the Stencil server.
 
 #### What is Stencil in context of firehose ?
 
-ODPF Stencil API is a dynamic schema registry for hosting and managing versions of Protobuf descriptors. The schema
+Stencil API is a dynamic schema registry for hosting and managing versions of Protobuf descriptors. The schema
 handling i.e., find the mapped schema for the topic, downloading the descriptors, and dynamically being notified
 of/updating with the latest schema is abstracted through the Stencil library.
 
 The Stencil Client is a proprietary library that provides an abstraction layer, for schema handling. Schema caching,
 dynamic schema updates are features of the stencil client library.
 
-Refer  [this article](https://odpf.gitbook.io/stencil/)  for further information of the features, configuration and
+Refer  [this article](https://goto.gitbook.io/stencil/)  for further information of the features, configuration and
 deployment instructions of the Stencil API. Source code of Stencil Server and Client API can be found in
-its  [Github repository](https://github.com/odpf/stencil).
+its  [Github repository](https://github.com/goto/stencil).
 
 #### Will I have any data loss if my firehose is failed ?
 
@@ -827,12 +827,12 @@ messages are pushed to DLQ queue with backoff. If push fails and DLQ is disabled
 Starting with version 0.2, Firehose also provides the ability to tag different error types under a specific scope: `DLQ`
 , `RETRY` or `FAIL`. This enables Firehose to effectively determine at runtime as to what should be the strategy when a
 particular error is encountered. For more details, please look at `ErrorConfig.java` class and classes in
-the `io.odpf.firehose.error` package.
+the `com.gotocompany.firehose.error` package.
 
 #### What all metrics are produced for me to monitor ?
 
 Firehose exposes critical metrics to monitor the health of your delivery streams and take any necessary actions. Refer
-the [Metrics](https://github.com/odpf/firehose/blob/main/docs/reference/metrics.md) section for further details on each
+the [Metrics](https://github.com/goto/firehose/blob/main/docs/reference/metrics.md) section for further details on each
 metric.
 
 #### What kind of delivery guarantees does Firehose provide? Is it different from what Kafka is tuned for?
@@ -847,7 +847,7 @@ messages are pushed to DLQ queue with backoff. If push fails and DLQ is disabled
 Starting with version 0.2, Firehose also provides the ability to tag different error types under a specific scope: `DLQ`
 , `RETRY` or `FAIL`. This enables Firehose to effectively determine at runtime as to what should be the strategy when a
 particular error is encountered. For more details, please look at `ErrorConfig.java` class and classes in
-the `io.odpf.firehose.error` package.
+the `com.gotocompany.firehose.error` package.
 
 #### What happens if my firehose is stopped and Kafka retention is for few days?
 

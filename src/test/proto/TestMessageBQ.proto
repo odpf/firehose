@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package odpf.firehose;
+package gotocompany.firehose;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
@@ -8,7 +8,7 @@ import "google/protobuf/struct.proto";
 import "google/type/date.proto";
 
 option java_multiple_files = true;
-option java_package = "io.odpf.firehose";
+option java_package = "com.gotocompany.firehose";
 option java_outer_classname = "TestMessageProtoBQ";
 
 message TestKeyBQ {
@@ -21,7 +21,7 @@ message TestMessageBQ {
   string order_url = 2;
   string order_details = 3;
   google.protobuf.Timestamp created_at = 4;
-  odpf.firehose.StatusBQ status = 5;
+  gotocompany.firehose.StatusBQ status = 5;
   int64 discount = 6;
   bool success = 7;
   float price = 8;

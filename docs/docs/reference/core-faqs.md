@@ -126,17 +126,17 @@ Firehose will send all the fields of the incoming messages to the specified sink
 
 ## What is Stencil in context of Firehose ?
 
-ODPF Stencil API is a dynamic schema registry for hosting and managing versions of Protobuf descriptors. The schema handling i.e., find the mapped schema for the topic, downloading the descriptors, and dynamically being notified of/updating with the latest schema is abstracted through the Stencil library.
+Stencil API is a dynamic schema registry for hosting and managing versions of Protobuf descriptors. The schema handling i.e., find the mapped schema for the topic, downloading the descriptors, and dynamically being notified of/updating with the latest schema is abstracted through the Stencil library.
 
 The Stencil Client is a proprietary library that provides an abstraction layer, for schema handling. Schema Caching, dynamic schema updates are features of the stencil client library.
 
-Refer [this article](https://odpf.gitbook.io/stencil/) for further information of the features, configuration and deployment instructions of the Stencil API. Source code of Stencil Server and Client API can be found in its [Github repository](https://github.com/odpf/stencil).
+Refer [this article](https://goto.gitbook.io/stencil/) for further information of the features, configuration and deployment instructions of the Stencil API. Source code of Stencil Server and Client API can be found in its [Github repository](https://github.com/goto/stencil).
 
 ## How do I configure Protobuf needed to consume ?
 
 Generated Protobuf Descriptors are hosted behind an Stencil server artifactory/HTTP endpoint. This endpoint URL and the ProtoDescriptor class that the Firehose deployment should use to deserialize raw data with is configured in Firehose in the environment variables`SCHEMA_REGISTRY_STENCIL_URLS`and`INPUT_SCHEMA_PROTO_CLASS` respectively .
 
-The Proto Descriptor Set of the Kafka messages must be uploaded to the Stencil server. Refer [this guide](https://github.com/odpf/stencil/tree/master/server#readme) on how to setup and configure the Stencil server.
+The Proto Descriptor Set of the Kafka messages must be uploaded to the Stencil server. Refer [this guide](https://github.com/goto/stencil/tree/master/server#readme) on how to setup and configure the Stencil server.
 
 ## Can we select particular fields from the input message ?
 

@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package io.odpf.firehose.consumer;
+package com.gotocompany.firehose.consumer;
 
 option java_multiple_files = true;
-option java_package = "io.odpf.firehose.consumer";
+option java_package = "com.gotocompany.firehose.consumer";
 option java_outer_classname = "SampleGrpcServerProto";
 
 service TestServer {

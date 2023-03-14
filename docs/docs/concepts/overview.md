@@ -10,7 +10,7 @@ scale. This section explains the overall architecture of Firehose and describes 
 ## [Monitoring Firehose with exposed metrics](monitoring.md)
 
 Always know what’s going on with your deployment with
-built-in [monitoring](https://github.com/odpf/firehose/blob/main/docs/assets/firehose-grafana-dashboard.json) of
+built-in [monitoring](https://github.com/goto/firehose/blob/main/docs/assets/firehose-grafana-dashboard.json) of
 throughput, response times, errors and more. This section contains guides, best practices and advises related to
 managing Firehose in production.
 

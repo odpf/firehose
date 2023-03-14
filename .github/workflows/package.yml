@@ -45,5 +45,5 @@ jobs:
           context: .
           push: true
           tags: |
-            odpf/firehose:latest
-            odpf/firehose:${{ steps.get_version.outputs.version-without-v }}
+            gotocompany/firehose:latest
+            gotocompany/firehose:${{ steps.get_version.outputs.version-without-v }}
