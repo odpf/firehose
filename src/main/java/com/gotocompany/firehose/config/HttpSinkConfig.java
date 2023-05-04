@@ -90,4 +90,8 @@ public interface HttpSinkConfig extends AppConfig {
     @DefaultValue("true")
     Boolean getSinkHttpDeleteBodyEnable();
 
+    @Key("SINK_HTTP_SIMPLE_DATE_FORMAT_ENABLE")
+    @DefaultValue("true")
+    Boolean getSinkHttpSimpleDateFormatEnable();
+
 }

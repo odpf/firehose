@@ -34,7 +34,7 @@ public class SerializerFactory {
             Parser protoParser = stencilClient.getParser(httpSinkConfig.getInputSchemaProtoClass());
             if (httpSinkConfig.getSinkHttpJsonBodyTemplate().isEmpty()) {
                 firehoseInstrumentation.logDebug("Serializer type: EsbMessageToJson", HttpSinkDataFormatType.JSON);
-                return new MessageToJson(protoParser, false, true);
+                return new MessageToJson(protoParser, false, httpSinkConfig.getSinkHttpSimpleDateFormatEnable());
             } else {
                 firehoseInstrumentation.logDebug("Serializer type: EsbMessageToTemplatizedJson");
                 return MessageToTemplatizedJson.create(new FirehoseInstrumentation(statsDReporter, MessageToTemplatizedJson.class), httpSinkConfig.getSinkHttpJsonBodyTemplate(), protoParser);

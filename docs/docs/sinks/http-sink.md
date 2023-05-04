@@ -141,3 +141,11 @@ This config if set to true will allow body for the HTTP DELETE method, otherwise
 - Example value: `false`
 - Type: `optional`
 - Default value: `true`
+
+### `SINK_HTTP_SIMPLE_DATE_FORMAT_ENABLE`
+
+This config if set to `true` will enable the simple date format (Eg. - `May 3, 2023 11:59:37 AM` ) for timestamps (both at root and nested level also) in case of JSON payload. If set to `false`, it will send the timestamps (both at root and nested level also) in the ISO format (Eg. - `2023-05-03T11:59:36.965Z`) . Note: This config is only applicable when the `SINK_HTTP_JSON_BODY_TEMPLATE` config is empty or not supplied.
+
+- Example value: `false`
+- Type: `optional`
+- Default value: `true`
