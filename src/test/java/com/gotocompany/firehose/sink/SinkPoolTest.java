@@ -37,7 +37,7 @@ public class SinkPoolTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        sinkPool = new SinkPool(workerSinks, executorService, 5);
+        sinkPool = new SinkPool(workerSinks, new ArrayList<>(), executorService, 5);
     }
 
     @Test

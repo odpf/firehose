@@ -66,9 +66,9 @@ public class FirehoseAsyncConsumer implements FirehoseConsumer {
 
     @Override
     public void close() throws IOException {
+        sinkPool.close();
         consumerAndOffsetManager.close();
         tracer.close();
-        sinkPool.close();
         firehoseInstrumentation.close();
     }
 }

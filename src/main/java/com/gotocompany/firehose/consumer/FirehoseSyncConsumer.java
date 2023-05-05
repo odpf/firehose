@@ -55,9 +55,9 @@ public class FirehoseSyncConsumer implements FirehoseConsumer {
 
     @Override
     public void close() throws IOException {
+        sink.close();
         tracer.close();
         consumerAndOffsetManager.close();
         firehoseInstrumentation.close();
-        sink.close();
     }
 }

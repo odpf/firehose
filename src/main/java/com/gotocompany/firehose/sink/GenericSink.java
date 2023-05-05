@@ -42,6 +42,6 @@ public class GenericSink extends AbstractSink {
 
     @Override
     public void close() throws IOException {
-
+        sink.close();
     }
 }

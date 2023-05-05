@@ -145,6 +145,7 @@ public class FirehoseConsumerFactory {
             ConsumerAndOffsetManager consumerAndOffsetManager = new ConsumerAndOffsetManager(sinks, offsetManager, firehoseKafkaConsumer, kafkaConsumerConfig, new FirehoseInstrumentation(statsDReporter, ConsumerAndOffsetManager.class));
             SinkPool sinkPool = new SinkPool(
                     new LinkedBlockingQueue<>(sinks),
+                    sinks,
                     Executors.newCachedThreadPool(),
                     sinkPoolConfig.getSinkPoolQueuePollTimeoutMS());
             return new FirehoseAsyncConsumer(

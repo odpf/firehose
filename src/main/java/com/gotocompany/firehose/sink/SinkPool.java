@@ -5,7 +5,9 @@ import com.gotocompany.firehose.message.Message;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,9 +20,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
+@Slf4j
 public class SinkPool implements AutoCloseable {
     private final Set<SinkFuture> sinkFutures = new HashSet<>();
     private final BlockingQueue<Sink> workerSinks;
+    private final List<Sink> allSinks;
     private final ExecutorService executorService;
     private final long pollTimeOutMillis;
 
@@ -59,6 +63,15 @@ public class SinkPool implements AutoCloseable {
 
     @Override
     public void close() {
+        allSinks.forEach(sink -> {
+            try {
+                log.info("Closing sink");
+                sink.close();
+            } catch (IOException e) {
+                log.error("Error happened while closing sink");
+                e.printStackTrace();
+            }
+        });
         executorService.shutdown();
     }
 

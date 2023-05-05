@@ -33,7 +33,7 @@ lombok {
 }
 
 group 'com.gotocompany'
-version '0.8.2'
+version '0.8.3'
 
 def projName = "firehose"
 
@@ -41,6 +41,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
+    mavenLocal()
     mavenCentral()
     jcenter()
     maven {
@@ -85,7 +86,7 @@ dependencies {
         exclude group: "log4j", module: "log4j"
     }
     implementation 'io.confluent:monitoring-interceptors:3.0.0'
-    implementation "io.grpc:grpc-all:1.38.0"
+    implementation 'io.grpc:grpc-all:1.53.0'
     implementation group: 'org.jfrog.buildinfo', name: 'build-info-extractor', version: '2.6.3'
     implementation group: 'com.google.gradle', name: 'osdetector-gradle-plugin', version: '1.2.1'
     implementation group: 'org.apache.ivy', name: 'ivy', version: '2.2.0'
@@ -98,10 +99,9 @@ dependencies {
     implementation 'com.gojek.parquet:parquet-hadoop:1.11.9'
     implementation group: 'com.github.os72', name: 'protobuf-dynamic', version: '1.0.1'
     implementation platform('com.google.cloud:libraries-bom:20.5.0')
-    implementation 'com.google.cloud:google-cloud-storage:1.114.0'
-    implementation 'com.google.cloud:google-cloud-bigquery:1.115.0'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-    implementation group: 'com.gotocompany', name: 'depot', version: '0.4.1'
+    implementation 'com.google.cloud:google-cloud-storage:2.20.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation group: 'com.gotocompany', name: 'depot', version: '0.4.2'
     implementation group: 'com.networknt', name: 'json-schema-validator', version: '1.0.59' exclude group: 'org.slf4j'
 
     testImplementation group: 'junit', name: 'junit', version: '4.11'

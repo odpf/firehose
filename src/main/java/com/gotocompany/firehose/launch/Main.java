@@ -54,6 +54,7 @@ public class Main {
                             firehoseConsumer.process();
                         }
                     } catch (Exception | Error e) {
+                        ensureThreadInterruptStateIsClearedAndClose(firehoseConsumer, firehoseInstrumentation);
                         firehoseInstrumentation.captureFatalError("firehose_error_event", e, "Caught exception or error, exiting the application");
                         System.exit(1);
                     } finally {
@@ -73,9 +74,10 @@ public class Main {
     }
 
     private static void ensureThreadInterruptStateIsClearedAndClose(FirehoseConsumer firehoseConsumer, FirehoseInstrumentation firehoseInstrumentation) {
-        Thread.interrupted();
         try {
-            firehoseConsumer.close();
+            if (firehoseConsumer != null) {
+                firehoseConsumer.close();
+            }
         } catch (IOException e) {
             firehoseInstrumentation.captureFatalError("firehose_error_event", e, "Exception on closing firehose consumer");
         }
