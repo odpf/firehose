@@ -12,8 +12,4 @@ public class BigquerySinkUtils {
         config.put("SINK_BIGQUERY_METADATA_COLUMNS_TYPES",
                 "message_offset=integer,message_topic=string,load_time=timestamp,message_timestamp=timestamp,message_partition=integer");
     }
-
-    public static void enableStorageAPI(Map<String, String> config) {
-        config.put("SINK_BIGQUERY_STORAGE_API_ENABLE", "true");
-    }
 }

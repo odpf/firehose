@@ -81,7 +81,6 @@ public class SinkFactory {
                 return;
             case BIGQUERY:
                 BigquerySinkUtils.addMetadataColumns(config);
-                BigquerySinkUtils.enableStorageAPI(config);
                 bigQuerySinkFactory = new BigQuerySinkFactory(
                         ConfigFactory.create(BigQuerySinkConfig.class, config),
                         statsDReporter,
