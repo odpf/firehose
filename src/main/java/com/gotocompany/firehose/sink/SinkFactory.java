@@ -37,11 +37,11 @@ public class SinkFactory {
     private final FirehoseInstrumentation firehoseInstrumentation;
     private final StencilClient stencilClient;
     private final OffsetManager offsetManager;
+    private final Map<String, String> config;
     private BigQuerySinkFactory bigQuerySinkFactory;
     private BigTableSinkFactory bigTableSinkFactory;
     private LogSinkFactory logSinkFactory;
     private RedisSinkFactory redisSinkFactory;
-    private final Map<String, String> config;
 
     public SinkFactory(KafkaConsumerConfig kafkaConsumerConfig,
                        StatsDReporter statsDReporter,
@@ -81,6 +81,7 @@ public class SinkFactory {
                 return;
             case BIGQUERY:
                 BigquerySinkUtils.addMetadataColumns(config);
+                BigquerySinkUtils.enableStorageAPI(config);
                 bigQuerySinkFactory = new BigQuerySinkFactory(
                         ConfigFactory.create(BigQuerySinkConfig.class, config),
                         statsDReporter,
