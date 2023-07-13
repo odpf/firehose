@@ -125,7 +125,7 @@ public class WriterOrchestrator implements Closeable {
         if (!writer.write(record)) {
             return write(record, timePartitionedPath);
         }
-        return writer.getMetadata().getFullPath();
+        return writer.getFullPath();
     }
 
     @Override
@@ -139,7 +139,7 @@ public class WriterOrchestrator implements Closeable {
             writer.close();
         }
         for (LocalFileWriter p : timePartitionWriterMap.values()) {
-            localStorage.deleteLocalFile(p.getMetadata().getFullPath());
+            localStorage.deleteLocalFile(p.getFullPath());
         }
     }
 }

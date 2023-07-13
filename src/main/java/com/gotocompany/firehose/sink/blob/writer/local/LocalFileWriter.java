@@ -16,4 +16,6 @@ public interface LocalFileWriter extends Closeable {
     LocalFileMetadata getMetadata();
 
     LocalFileMetadata closeAndFetchMetaData() throws IOException;
+
+    String getFullPath();
 }
