@@ -13,6 +13,9 @@ public interface GCSConfig extends Config {
     @Key("${GCS_TYPE}_GCS_BUCKET_NAME")
     String getGCSBucketName();
 
+    @Key("${GCS_TYPE}_GCS_DIRECTORY_PREFIX")
+    String getGCSDirectoryPrefix();
+
     @Key("${GCS_TYPE}_GCS_CREDENTIAL_PATH")
     String getGCSCredentialPath();
 

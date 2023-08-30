@@ -21,4 +21,6 @@ public class DlqMessage {
     private long timestamp;
     @JsonProperty("error")
     private String error;
+    @JsonProperty("error_type")
+    private String errorType;
 }

@@ -9,6 +9,9 @@ public interface S3Config extends Config {
     @Key("${S3_TYPE}_S3_BUCKET_NAME")
     String getS3BucketName();
 
+    @Key("${S3_TYPE}_S3_DIRECTORY_PREFIX")
+    String getS3DirectoryPrefix();
+
     @Key("${S3_TYPE}_S3_ACCESS_KEY")
     String getS3AccessKey();
 

@@ -72,9 +72,10 @@ public class S3 implements BlobStorage {
 
     @Override
     public void store(String objectName, String filePath) throws BlobStorageException {
+        String finalPath = createPath(objectName);
         try {
             byte[] content = Files.readAllBytes(Paths.get(filePath));
-            store(objectName, content);
+            store(finalPath, content);
         } catch (IOException e) {
             LOGGER.error("Failed to read local file {}", filePath);
             throw new BlobStorageException("file_io_error", "File Read failed", e);
@@ -83,10 +84,11 @@ public class S3 implements BlobStorage {
 
     @Override
     public void store(String objectName, byte[] content) throws BlobStorageException {
+        String finalPath = createPath(objectName);
         try {
             PutObjectRequest putObject = PutObjectRequest.builder()
                     .bucket(s3Config.getS3BucketName())
-                    .key(objectName)
+                    .key(finalPath)
                     .build();
             s3Client.putObject(putObject, RequestBody.fromBytes(content));
             LOGGER.info("Created object in S3 {}", objectName);
@@ -94,5 +96,11 @@ public class S3 implements BlobStorage {
             LOGGER.error("Failed to create object in S3 {}", objectName);
             throw new BlobStorageException(ase.getMessage(), ase.getMessage(), ase);
         }
+    }
+
+    private String createPath(String objectName) {
+        String prefix = s3Config.getS3DirectoryPrefix();
+        return prefix == null || prefix.isEmpty()
+                ? objectName : Paths.get(prefix, objectName).toString();
     }
 }

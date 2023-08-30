@@ -17,11 +17,9 @@ import org.slf4j.LoggerFactory;
 import org.threeten.bp.Duration;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
 
 public class GoogleCloudStorage implements BlobStorage {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoogleCloudStorage.class);
@@ -29,7 +27,7 @@ public class GoogleCloudStorage implements BlobStorage {
     private final Storage storage;
 
     public GoogleCloudStorage(GCSConfig gcsConfig) throws IOException {
-        this(gcsConfig, GoogleCredentials.fromStream(new FileInputStream(gcsConfig.getGCSCredentialPath())));
+        this(gcsConfig, GoogleCredentials.fromStream(Files.newInputStream(Paths.get(gcsConfig.getGCSCredentialPath()))));
         checkBucket();
         logRetentionPolicy();
     }
@@ -73,29 +71,34 @@ public class GoogleCloudStorage implements BlobStorage {
                 Storage.BucketGetOption.fields(Storage.BucketField.RETENTION_POLICY),
                 Storage.BucketGetOption.userProject(gcsConfig.getGCloudProjectID()));
         LOGGER.info("Retention Policy for {}", bucketName);
-        LOGGER.info("Retention Period: {}", bucket.getRetentionPeriod());
+        LOGGER.info("Retention Period: {}", bucket.getRetentionPeriodDuration());
         if (bucket.retentionPolicyIsLocked() != null && bucket.retentionPolicyIsLocked()) {
             LOGGER.info("Retention Policy is locked");
-        }
-        if (bucket.getRetentionEffectiveTime() != null) {
-            LOGGER.info("Effective Time: {}", new Date(bucket.getRetentionEffectiveTime()));
         }
     }
 
     @Override
     public void store(String objectName, String filePath) throws BlobStorageException {
+        String finalPath = createPath(objectName);
         try {
             byte[] content = Files.readAllBytes(Paths.get(filePath));
-            store(objectName, content);
+            store(finalPath, content);
         } catch (IOException e) {
             LOGGER.error("Failed to read local file {}", filePath);
             throw new BlobStorageException("file_io_error", "File Read failed", e);
         }
     }
 
+    private String createPath(String objectName) {
+        String prefix = gcsConfig.getGCSDirectoryPrefix();
+        return prefix == null || prefix.isEmpty()
+                ? objectName : Paths.get(prefix, objectName).toString();
+    }
+
     @Override
     public void store(String objectName, byte[] content) throws BlobStorageException {
-        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(gcsConfig.getGCSBucketName(), objectName)).build();
+        String finalPath = createPath(objectName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(gcsConfig.getGCSBucketName(), finalPath)).build();
         String blobPath = String.join(File.separator, blobInfo.getBucket(), blobInfo.getName());
         try {
             storage.create(blobInfo, content, Storage.BlobTargetOption.userProject(gcsConfig.getGCloudProjectID()));

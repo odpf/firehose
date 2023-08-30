@@ -60,7 +60,8 @@ public class BlobStorageDlqWriter implements DlqWriter {
                     message.getPartition(),
                     message.getOffset(),
                     message.getTimestamp(),
-                    message.getErrorInfo().toString()));
+                    message.getErrorInfo().toString(),
+                    message.getErrorInfo().getErrorType().name()));
         } catch (JsonProcessingException e) {
             log.warn("Not able to convert message into json", e);
             return "";

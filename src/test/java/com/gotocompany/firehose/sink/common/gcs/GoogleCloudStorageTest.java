@@ -18,7 +18,22 @@ import java.util.HashMap;
 public class GoogleCloudStorageTest {
 
     @Test
-    public void shouldCallStorage() throws BlobStorageException {
+    public void shouldCallStorageWithPrefix() throws BlobStorageException {
+        GCSConfig config = ConfigFactory.create(GCSConfig.class, new HashMap<Object, Object>() {{
+            put("GCS_TYPE", "SOME_TYPE");
+            put("SOME_TYPE_GCS_BUCKET_NAME", "TestBucket");
+            put("SOME_TYPE_GCS_GOOGLE_CLOUD_PROJECT_ID", "projectID");
+            put("SOME_TYPE_GCS_DIRECTORY_PREFIX", "some-name");
+        }});
+        Storage storage = Mockito.mock(Storage.class);
+        GoogleCloudStorage gcs = new GoogleCloudStorage(config, storage);
+        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of("TestBucket", "some-name/test")).build();
+        gcs.store("test", new byte[]{});
+        Mockito.verify(storage, Mockito.times(1)).create(blobInfo, new byte[]{}, Storage.BlobTargetOption.userProject("projectID"));
+    }
+
+    @Test
+    public void shouldCallStorageWithoutPrefix() throws BlobStorageException {
         GCSConfig config = ConfigFactory.create(GCSConfig.class, new HashMap<Object, Object>() {{
             put("GCS_TYPE", "SOME_TYPE");
             put("SOME_TYPE_GCS_BUCKET_NAME", "TestBucket");
