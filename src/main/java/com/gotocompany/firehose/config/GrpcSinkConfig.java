@@ -17,4 +17,14 @@ public interface GrpcSinkConfig extends AppConfig {
     @Config.Key("SINK_GRPC_RESPONSE_SCHEMA_PROTO_CLASS")
     String getSinkGrpcResponseSchemaProtoClass();
 
+    @Config.Key("SINK_GRPC_ARG_KEEPALIVE_TIME_MS")
+    @Config.DefaultValue("9223372036854775807")
+    Long getSinkGrpcArgKeepaliveTimeMS();
+
+    @Config.Key("SINK_GRPC_ARG_KEEPALIVE_TIMEOUT_MS")
+    @DefaultValue("20000")
+    Long getSinkGrpcArgKeepaliveTimeoutMS();
+
+    @Config.Key("SINK_GRPC_ARG_DEADLINE_MS")
+    Long getSinkGrpcArgDeadlineMS();
 }

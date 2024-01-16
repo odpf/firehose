@@ -11,6 +11,7 @@ public class Metrics {
     //SINK PREFIXES
     public static final String SINK_PREFIX = "sink_";
     public static final String HTTP_SINK_PREFIX = "http_";
+    public static final String GRPC_SINK_PREFIX = "grpc_";
     public static final String BLOB_SINK_PREFIX = "blob_";
 
     public static final String MONGO_SINK_PREFIX = "mongo_";
@@ -43,6 +44,7 @@ public class Metrics {
     public static final String SINK_MESSAGES_DROP_TOTAL = APPLICATION_PREFIX + SINK_PREFIX + "messages_drop_total";
     public static final String SINK_HTTP_RESPONSE_CODE_TOTAL = APPLICATION_PREFIX + SINK_PREFIX + HTTP_SINK_PREFIX + "response_code_total";
     public static final String SINK_PUSH_BATCH_SIZE_TOTAL = APPLICATION_PREFIX + SINK_PREFIX + "push_batch_size_total";
+    public static final String SINK_GRPC_ERROR_TOTAL = APPLICATION_PREFIX + GRPC_SINK_PREFIX + "error_total";
 
     // MONGO SINK MEASUREMENTS
     public static final String SINK_MONGO_INSERTED_TOTAL = APPLICATION_PREFIX + SINK_PREFIX + MONGO_SINK_PREFIX + "inserted_total";

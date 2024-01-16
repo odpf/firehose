@@ -1,8 +1,8 @@
-package com.gotocompany.firehose.sink.grpc;
+package com.gotocompany.firehose.sink.grpc.client;
+
 
 import com.gotocompany.firehose.config.GrpcSinkConfig;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
-import com.gotocompany.firehose.sink.grpc.client.GrpcClient;
 import com.gotocompany.firehose.consumer.Error;
 import com.gotocompany.firehose.consumer.TestGrpcRequest;
 import com.gotocompany.firehose.consumer.TestGrpcResponse;
@@ -19,6 +19,7 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Stubber;
 
@@ -29,9 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class GrpcClientTest {
@@ -43,9 +42,12 @@ public class GrpcClientTest {
     private static final List<String> HEADER_KEYS = Arrays.asList("test-header-key-1", "test-header-key-2");
     private HeaderTestInterceptor headerTestInterceptor;
 
+    @Mock
+    private FirehoseInstrumentation firehoseInstrumentation;
+
     @Before
     public void setup() throws IOException {
-        FirehoseInstrumentation firehoseInstrumentation = Mockito.mock(FirehoseInstrumentation.class);
+        firehoseInstrumentation = Mockito.mock(FirehoseInstrumentation.class);
         testGrpcService = Mockito.mock(TestServerGrpc.TestServerImplBase.class, CALLS_REAL_METHODS);
         headerTestInterceptor = new HeaderTestInterceptor();
         headerTestInterceptor.setHeaderKeys(HEADER_KEYS);
@@ -111,7 +113,6 @@ public class GrpcClientTest {
                 .setField2("field2")
                 .build();
         DynamicMessage response = grpcClient.execute(request.toByteArray(), headers);
-        System.out.println(response.toString());
         assertTrue(Boolean.parseBoolean(String.valueOf(response.getField(TestGrpcResponse.getDescriptor().findFieldByName("success")))));
     }
 
@@ -156,6 +157,29 @@ public class GrpcClientTest {
     }
 
     @Test
+    public void shouldNotDecorateCallOptionsWithDeadline() {
+        CallOptions decoratedCallOptions = grpcClient.decoratedDefaultCallOptions();
+        assertNull(decoratedCallOptions.getDeadline());
+    }
+
+    @Test
+    public void shouldDecorateCallOptionsWithDeadline() {
+        Map<String, String> config = new HashMap<>();
+        config.put("SINK_GRPC_SERVICE_HOST", "localhost");
+        config.put("SINK_GRPC_SERVICE_PORT", "5000");
+        config.put("SINK_GRPC_METHOD_URL", "com.gotocompany.firehose.consumer.TestServer/TestRpcMethod");
+        config.put("SINK_GRPC_RESPONSE_SCHEMA_PROTO_CLASS", "com.gotocompany.firehose.consumer.TestGrpcResponse");
+        config.put("SINK_GRPC_ARG_DEADLINE_MS", "1000");
+        GrpcSinkConfig grpcSinkConfig = ConfigFactory.create(GrpcSinkConfig.class, config);
+        StencilClient stencilClient = StencilClientFactory.getClient();
+        ManagedChannel managedChannel = ManagedChannelBuilder.forAddress(grpcSinkConfig.getSinkGrpcServiceHost(), grpcSinkConfig.getSinkGrpcServicePort()).usePlaintext().build();
+        grpcClient = new GrpcClient(firehoseInstrumentation, grpcSinkConfig, managedChannel, stencilClient);
+
+        CallOptions decoratedCallOptions = grpcClient.decoratedDefaultCallOptions();
+        assertNotNull(decoratedCallOptions.getDeadline());
+    }
+
+    @Test
     public void shouldReturnErrorWhenGrpcException() {
         doThrow(new RuntimeException("error")).when(testGrpcService).testRpcMethod(any(TestGrpcRequest.class), any());
         TestGrpcRequest request = TestGrpcRequest.newBuilder()
@@ -166,6 +190,16 @@ public class GrpcClientTest {
         assertFalse(Boolean.parseBoolean(String.valueOf(response.getField(response.getDescriptorForType().findFieldByName("success")))));
     }
 
+    @Test
+    public void shouldReportMetricsWhenGrpcException() {
+        doThrow(new StatusRuntimeException(Status.UNKNOWN)).when(testGrpcService).testRpcMethod(any(TestGrpcRequest.class), any());
+        TestGrpcRequest request = TestGrpcRequest.newBuilder()
+                .setField1("field1")
+                .setField2("field2")
+                .build();
+       grpcClient.execute(request.toByteArray(), headers);
+       verify(firehoseInstrumentation, times(1)).incrementCounter("firehose_grpc_error_total", "status=" + Status.UNKNOWN.getCode());
+    }
 
     private <T extends AbstractMessage> Stubber doAnswerProtoReponse(T response) {
         return doAnswer(invocation -> {
