@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,8 +49,9 @@ public class HttpSink extends AbstractHttpSink {
     }
 
     @Override
-    protected void prepare(List<Message> messages) throws DeserializerException, IOException {
+    protected void prepare(List<Message> messages) throws DeserializerException, IOException, SQLException {
         try {
+            super.prepare(messages);
             setHttpRequests(request.build(messages));
         } catch (URISyntaxException e) {
             throw new IOException(e);

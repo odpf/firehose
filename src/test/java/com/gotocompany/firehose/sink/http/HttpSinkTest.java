@@ -3,7 +3,6 @@ package com.gotocompany.firehose.sink.http;
 
 import com.gotocompany.firehose.config.converter.RangeToHashMapConverter;
 import com.gotocompany.firehose.exception.DeserializerException;
-import com.gotocompany.firehose.exception.NeedToRetry;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
 import com.gotocompany.firehose.sink.http.request.types.Request;
@@ -27,8 +26,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -98,8 +100,8 @@ public class HttpSinkTest {
         verify(httpClient, times(1)).execute(httpPost);
     }
 
-    @Test(expected = NeedToRetry.class)
-    public void shouldThrowNeedToRetryExceptionWhenResponseCodeIsGivenRange() throws Exception {
+    @Test
+    public void shouldReturnBackFailedMessagesWhenResponseCodeIsGivenRange() throws Exception {
         when(response.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(500);
 
@@ -115,11 +117,14 @@ public class HttpSinkTest {
         HttpSink httpSink = new HttpSink(firehoseInstrumentation, request, httpClient, stencilClient,
                 new RangeToHashMapConverter().convert(null, "400-505"), requestLogStatusCodeRanges);
         httpSink.prepare(messages);
-        httpSink.execute();
+        List<Message> failedMessages = httpSink.execute();
+
+        assertFalse(failedMessages.isEmpty());
+        assertEquals(1, failedMessages.size());
     }
 
-    @Test(expected = NeedToRetry.class)
-    public void shouldThrowNeedToRetryExceptionWhenResponseIsNull() throws Exception {
+    @Test
+    public void shouldReturnBackFailedMessagesWhenResponseIsNull() throws Exception {
 
         List<HttpEntityEnclosingRequestBase> httpRequests = Arrays.asList(httpPut);
 
@@ -133,11 +138,14 @@ public class HttpSinkTest {
 
         HttpSink httpSink = new HttpSink(firehoseInstrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
         httpSink.prepare(messages);
-        httpSink.execute();
+        List<Message> failedMessages = httpSink.execute();
+
+        assertFalse(failedMessages.isEmpty());
+        assertEquals(1, failedMessages.size());
     }
 
-    @Test(expected = NeedToRetry.class)
-    public void shouldThrowNeedToRetryExceptionWhenResponseStatusCodeIsZero() throws Exception {
+    @Test
+    public void shouldReturnBackFailedMessagesWhenResponseStatusCodeIsZero() throws Exception {
 
         List<HttpEntityEnclosingRequestBase> httpRequests = Arrays.asList(httpPut);
 
@@ -152,11 +160,14 @@ public class HttpSinkTest {
 
         HttpSink httpSink = new HttpSink(firehoseInstrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
         httpSink.prepare(messages);
-        httpSink.execute();
+        List<Message> failedMessages = httpSink.execute();
+
+        assertFalse(failedMessages.isEmpty());
+        assertEquals(1, failedMessages.size());
     }
 
     @Test(expected = IOException.class)
-    public void shouldCatchURISyntaxExceptionAndThrowIOException() throws URISyntaxException, DeserializerException, IOException {
+    public void shouldCatchURISyntaxExceptionAndThrowIOException() throws URISyntaxException, DeserializerException, IOException, SQLException {
         when(request.build(messages)).thenThrow(new URISyntaxException("", ""));
 
         HttpSink httpSink = new HttpSink(firehoseInstrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
@@ -324,7 +335,7 @@ public class HttpSinkTest {
         verify(firehoseInstrumentation, times(1)).captureCount("firehose_sink_messages_drop_total", 2L, "cause= 500");
     }
 
-    @Test(expected = NeedToRetry.class)
+    @Test
     public void shouldNotCaptureDroppedMessagesMetricsIfInStatusCodeRange() throws Exception {
         when(response.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(500);

@@ -19,6 +19,7 @@ import org.xerial.snappy.Snappy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +54,9 @@ public class PromSink extends AbstractHttpSink {
      * @throws IOException           the io exception
      */
     @Override
-    protected void prepare(List<Message> messages) throws DeserializerException, IOException {
+    protected void prepare(List<Message> messages) throws DeserializerException, IOException, SQLException {
         try {
+            super.prepare(messages);
             setHttpRequests(request.build(messages));
         } catch (URISyntaxException e) {
             throw new IOException(e);

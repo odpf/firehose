@@ -3,7 +3,6 @@ package com.gotocompany.firehose.sink.prometheus;
 
 import com.gotocompany.firehose.config.converter.RangeToHashMapConverter;
 import com.gotocompany.firehose.exception.DeserializerException;
-import com.gotocompany.firehose.exception.NeedToRetry;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
 import com.gotocompany.firehose.sink.prometheus.request.PromRequest;
@@ -29,12 +28,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -99,8 +100,8 @@ public class PromSinkTest {
         verify(httpClient, times(1)).execute(httpPost);
     }
 
-    @Test(expected = NeedToRetry.class)
-    public void shouldThrowNeedToRetryExceptionWhenResponseCodeIsGivenRange() throws Exception {
+    @Test
+    public void shouldReturnBackFailedMessagesWhenResponseCodeIsGivenRange() throws Exception {
         when(response.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(500);
         when(httpPost.getURI()).thenReturn(new URI("http://dummy.com"));
@@ -110,11 +111,14 @@ public class PromSinkTest {
         PromSink promSink = new PromSink(firehoseInstrumentation, request, httpClient, stencilClient,
                 new RangeToHashMapConverter().convert(null, "400-505"), requestLogStatusCodeRanges);
         promSink.prepare(messages);
-        promSink.execute();
+        List<Message> failedMessages = promSink.execute();
+
+        assertFalse(failedMessages.isEmpty());
+        assertEquals(1, failedMessages.size());
     }
 
-    @Test(expected = NeedToRetry.class)
-    public void shouldThrowNeedToRetryExceptionWhenResponseCodeIsNull() throws Exception {
+    @Test
+    public void shouldReturnBackFailedMessagesWhenResponseCodeIsNull() throws Exception {
         when(httpPost.getURI()).thenReturn(new URI("http://dummy.com"));
         when(httpPost.getAllHeaders()).thenReturn(new Header[]{});
         when(httpPost.getEntity()).thenReturn(httpEntity);
@@ -124,11 +128,14 @@ public class PromSinkTest {
 
         PromSink promSink = new PromSink(firehoseInstrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
         promSink.prepare(messages);
-        promSink.execute();
+        List<Message> failedMessages = promSink.execute();
+
+        assertFalse(failedMessages.isEmpty());
+        assertEquals(1, failedMessages.size());
     }
 
     @Test(expected = IOException.class)
-    public void shouldCatchURISyntaxExceptionAndThrowIOException() throws URISyntaxException, DeserializerException, IOException {
+    public void shouldCatchURISyntaxExceptionAndThrowIOException() throws URISyntaxException, DeserializerException, IOException, SQLException {
         when(request.build(messages)).thenThrow(new URISyntaxException("", ""));
 
         PromSink promSink = new PromSink(firehoseInstrumentation, request, httpClient, stencilClient, retryStatusCodeRange, requestLogStatusCodeRanges);
@@ -218,7 +225,7 @@ public class PromSinkTest {
         verify(firehoseInstrumentation, times(1)).captureCount("firehose_sink_messages_drop_total", 1L, "cause= 500");
     }
 
-    @Test(expected = NeedToRetry.class)
+    @Test
     public void shouldNotCaptureDroppedMessagesMetricsIfInStatusCodeRange() throws Exception {
         when(response.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(500);

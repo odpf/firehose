@@ -1,7 +1,7 @@
 package com.gotocompany.firehose.sink.common;
 
 
-import com.gotocompany.firehose.exception.NeedToRetry;
+import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
 import com.gotocompany.firehose.metrics.Metrics;
@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,7 @@ public abstract class AbstractHttpSink extends AbstractSink {
     private final Map<Integer, Boolean> retryStatusCodeRanges;
     private final Map<Integer, Boolean> requestLogStatusCodeRanges;
     protected static final String SUCCESS_CODE_PATTERN = "^2.*";
+    private List<Message> sourceMessages;
 
     public AbstractHttpSink(FirehoseInstrumentation firehoseInstrumentation, String sinkType, HttpClient httpClient, StencilClient stencilClient, Map<Integer, Boolean> retryStatusCodeRanges, Map<Integer, Boolean> requestLogStatusCodeRanges) {
         super(firehoseInstrumentation, sinkType);
@@ -45,22 +47,23 @@ public abstract class AbstractHttpSink extends AbstractSink {
     @Override
     public List<Message> execute() throws Exception {
         HttpResponse response = null;
-        for (HttpEntityEnclosingRequestBase httpRequest : httpRequests) {
+        ArrayList<Message> failedMessages = new ArrayList<>();
+        for (int i = 0; i < httpRequests.size(); i++) {
             try {
-                response = httpClient.execute(httpRequest);
+                response = httpClient.execute(httpRequests.get(i));
                 List<String> contentStringList = null;
                 getFirehoseInstrumentation().logInfo("Response Status: {}", statusCode(response));
                 if (shouldLogResponse(response)) {
                     printResponse(response);
                 }
                 if (shouldLogRequest(response)) {
-                    contentStringList = readContent(httpRequest);
-                    printRequest(httpRequest, contentStringList);
+                    contentStringList = readContent(httpRequests.get(i));
+                    printRequest(httpRequests.get(i), contentStringList);
                 }
                 if (shouldRetry(response)) {
-                    throw new NeedToRetry(statusCode(response));
+                    failedMessages.add(sourceMessages.get(i));
                 } else if (!Pattern.compile(SUCCESS_CODE_PATTERN).matcher(String.valueOf(response.getStatusLine().getStatusCode())).matches()) {
-                    contentStringList = contentStringList == null ? readContent(httpRequest) : contentStringList;
+                    contentStringList = contentStringList == null ? readContent(httpRequests.get(i)) : contentStringList;
                     captureMessageDropCount(response, contentStringList);
                 }
             } finally {
@@ -68,7 +71,7 @@ public abstract class AbstractHttpSink extends AbstractSink {
                 captureHttpStatusCount(response);
             }
         }
-        return new ArrayList<>();
+        return failedMessages;
     }
 
     @Override
@@ -78,6 +81,10 @@ public abstract class AbstractHttpSink extends AbstractSink {
         getStencilClient().close();
     }
 
+    @Override
+    protected void prepare(List<Message> messages) throws DeserializerException, IOException, SQLException {
+        this.sourceMessages = messages;
+    }
 
     private void consumeResponse(HttpResponse response) {
         if (response != null) {
