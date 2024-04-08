@@ -25,6 +25,15 @@ Defines the URL of the GRPC method that needs to be called.
 - Example value: `com.tests.SampleServer/SomeMethod`
 - Type: `required`
 
+### `SINK_GRPC_METADATA`
+
+Defines the GRPC additional static Metadata that allows clients to provide information to server that is associated with an RPC.
+
+Note - final metadata will be generated with merging static metadata and the kafka record header. 
+
+- Example value: `authorization:token,dlq:true`
+- Type: `optional`
+
 ### `SINK_GRPC_RESPONSE_SCHEMA_PROTO_CLASS`
 
 Defines the Proto which would be the response of the GRPC Method.

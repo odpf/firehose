@@ -1,5 +1,7 @@
 package com.gotocompany.firehose.config;
 
+import com.gotocompany.firehose.config.converter.GrpcMetadataConverter;
+import io.grpc.Metadata;
 import org.aeonbits.owner.Config;
 
 
@@ -27,4 +29,9 @@ public interface GrpcSinkConfig extends AppConfig {
 
     @Config.Key("SINK_GRPC_ARG_DEADLINE_MS")
     Long getSinkGrpcArgDeadlineMS();
+
+    @Key("SINK_GRPC_METADATA")
+    @DefaultValue("")
+    @ConverterClass(GrpcMetadataConverter.class)
+    Metadata getSinkGrpcMetadata();
 }

@@ -24,11 +24,8 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Stubber;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -132,6 +129,33 @@ public class GrpcClientTest {
         grpcClient.execute(request.toByteArray(), headers);
 
         assertEquals(headerTestInterceptor.getKeyValues(), Arrays.asList(headerValue1, headerValue2));
+    }
+
+    @Test
+    public void shouldBuildConsolidatedMetadataFromHeaderAndStaticMetadata() {
+        Map<String, String> config = new HashMap<>();
+        config.put("SINK_GRPC_SERVICE_HOST", "localhost");
+        config.put("SINK_GRPC_SERVICE_PORT", "5000");
+        config.put("SINK_GRPC_METHOD_URL", "com.gotocompany.firehose.consumer.TestServer/TestRpcMethod");
+        config.put("SINK_GRPC_RESPONSE_SCHEMA_PROTO_CLASS", "com.gotocompany.firehose.consumer.TestGrpcResponse");
+        config.put("SINK_GRPC_METADATA", " ,token: 123, dlq:true,");
+        GrpcSinkConfig grpcSinkConfig = ConfigFactory.create(GrpcSinkConfig.class, config);
+        StencilClient stencilClient = StencilClientFactory.getClient();
+        ManagedChannel managedChannel = ManagedChannelBuilder.forAddress(grpcSinkConfig.getSinkGrpcServiceHost(), grpcSinkConfig.getSinkGrpcServicePort()).usePlaintext().build();
+        grpcClient = new GrpcClient(firehoseInstrumentation, grpcSinkConfig, managedChannel, stencilClient);
+        String headerValue1 = "test-value-1";
+        String headerValue2 = "test-value-2";
+        headers.add(new RecordHeader(HEADER_KEYS.get(0), headerValue1.getBytes()));
+        headers.add(new RecordHeader(HEADER_KEYS.get(1), headerValue2.getBytes()));
+
+        Metadata resultMetadata = grpcClient.buildMetadata(headers);
+
+        assertEquals(Arrays.asList("dlq", "test-header-key-1", "test-header-key-2", "token").stream().collect(Collectors.toSet()), resultMetadata.keys());
+
+        assertEquals("true", resultMetadata.get(Metadata.Key.of("dlq", Metadata.ASCII_STRING_MARSHALLER)));
+        assertEquals("test-value-1", resultMetadata.get(Metadata.Key.of("test-header-key-1", Metadata.ASCII_STRING_MARSHALLER)));
+        assertEquals("test-value-2", resultMetadata.get(Metadata.Key.of("test-header-key-2", Metadata.ASCII_STRING_MARSHALLER)));
+        assertEquals("123", resultMetadata.get(Metadata.Key.of("token", Metadata.ASCII_STRING_MARSHALLER)));
     }
 
     @Test
