@@ -5,6 +5,7 @@ COPY ./ ./
 RUN ./gradlew build
 
 FROM openjdk:8-jre
+RUN apt-get update && apt-get upgrade -y curl
 COPY --from=GRADLE_BUILD ./build/libs/ /opt/firehose/bin
 COPY --from=GRADLE_BUILD ./jolokia-jvm-agent.jar /opt/firehose
 COPY --from=GRADLE_BUILD ./src/main/resources/log4j.xml /opt/firehose/etc/log4j.xml
