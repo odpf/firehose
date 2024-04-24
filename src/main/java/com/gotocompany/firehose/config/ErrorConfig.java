@@ -18,7 +18,7 @@ public interface ErrorConfig extends Config, Mutable {
     @ConverterClass(SetErrorTypeConverter.class)
     @Key("ERROR_TYPES_FOR_RETRY")
     @Separator(",")
-    @DefaultValue("DEFAULT_ERROR")
+    @DefaultValue("DEFAULT_ERROR,SINK_RETRYABLE_ERROR")
     Set<ErrorType> getErrorTypesForRetry();
 
     @ConverterClass(SetErrorTypeConverter.class)

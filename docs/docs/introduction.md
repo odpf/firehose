@@ -29,7 +29,8 @@ Discover why users choose Firehose as their main Kafka Consumer
 Following sinks are supported in the Firehose
 
 - [Log](https://en.wikipedia.org/wiki/Log_file) - Standard Output
-- [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) - HTTP services
+- [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) - HTTP services (deprecated in v0.10.0+)
+- [HTTP V2](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) - HTTP services 
 - [JDBC](https://en.wikipedia.org/wiki/Java_Database_Connectivity) - Postgres DB
 - [InfluxDB](https://en.wikipedia.org/wiki/InfluxDB) - A time-series database
 - [Redis](https://en.wikipedia.org/wiki/Redis) - An in-memory Key value store

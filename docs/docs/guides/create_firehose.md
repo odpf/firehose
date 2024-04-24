@@ -42,6 +42,8 @@ event_timestamp {
 
 Firehose [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) sink allows users to read data from Kafka and write to an HTTP endpoint. it requires the following [variables](../sinks/http-sink.md#http-sink) to be set. You need to create your own HTTP endpoint so that the Firehose can send data to it.
 
+Note: HTTP sink type is deprecated from Firehose version 0.8.11 onwards. Please consider using HTTPV2 sink type instead.
+
 ### Supported methods
 
 Firehose supports `PUT` and `POST` verbs in its HTTP sink. The method can be configured using [`SINK_HTTP_REQUEST_METHOD`](../sinks/http-sink.md#sink_http_request_method).
@@ -140,4 +142,11 @@ _**Note:**_ [_**DATABASE**_](../sinks/influxdb-sink.md#sink_influx_db_name) _**a
 
 - it requires the following environment  [variables](https://github.com/goto/depot/blob/main/docs/reference/configuration/bigtable.md) ,which are required by Depot library, to be set along with the generic firehose variables.
 
+## Create an HTTPV2 Sink
+
+- HttpV2 Sink is implemented in Firehose using the Http sink connector implementation in Depot library. For details on all the features supported by HttpV2 Sink, please refer the Depot documentation [here](https://github.com/goto/depot/blob/main/docs/sinks/http.md).
+- it requires the following environment  [variables](https://github.com/goto/depot/blob/main/docs/reference/configuration/http.md) ,which are required by Depot library, to be set along with the generic firehose variables.
+
 If you'd like to connect to a sink which is not yet supported, you can create a new sink by following the [contribution guidelines](../contribute/contribution.md)
+
+

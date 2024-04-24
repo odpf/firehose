@@ -1,5 +1,19 @@
 package com.gotocompany.firehose.sink;
 
+import com.gotocompany.depot.bigquery.BigQuerySink;
+import com.gotocompany.depot.bigquery.BigQuerySinkFactory;
+import com.gotocompany.depot.bigtable.BigTableSink;
+import com.gotocompany.depot.bigtable.BigTableSinkFactory;
+import com.gotocompany.depot.config.BigQuerySinkConfig;
+import com.gotocompany.depot.config.BigTableSinkConfig;
+import com.gotocompany.depot.config.HttpSinkConfig;
+import com.gotocompany.depot.config.RedisSinkConfig;
+import com.gotocompany.depot.http.HttpSink;
+import com.gotocompany.depot.log.LogSink;
+import com.gotocompany.depot.log.LogSinkFactory;
+import com.gotocompany.depot.metrics.StatsDReporter;
+import com.gotocompany.depot.redis.RedisSink;
+import com.gotocompany.depot.redis.RedisSinkFactory;
 import com.gotocompany.firehose.config.KafkaConsumerConfig;
 import com.gotocompany.firehose.config.enums.SinkType;
 import com.gotocompany.firehose.consumer.kafka.OffsetManager;
@@ -10,22 +24,11 @@ import com.gotocompany.firehose.sink.blob.BlobSinkFactory;
 import com.gotocompany.firehose.sink.elasticsearch.EsSinkFactory;
 import com.gotocompany.firehose.sink.grpc.GrpcSinkFactory;
 import com.gotocompany.firehose.sink.http.HttpSinkFactory;
+import com.gotocompany.firehose.sink.httpv2.HttpV2SinkUtils;
 import com.gotocompany.firehose.sink.influxdb.InfluxSinkFactory;
 import com.gotocompany.firehose.sink.jdbc.JdbcSinkFactory;
 import com.gotocompany.firehose.sink.mongodb.MongoSinkFactory;
 import com.gotocompany.firehose.sink.prometheus.PromSinkFactory;
-import com.gotocompany.depot.bigquery.BigQuerySink;
-import com.gotocompany.depot.bigquery.BigQuerySinkFactory;
-import com.gotocompany.depot.config.BigQuerySinkConfig;
-import com.gotocompany.depot.config.RedisSinkConfig;
-import com.gotocompany.depot.bigtable.BigTableSinkFactory;
-import com.gotocompany.depot.bigtable.BigTableSink;
-import com.gotocompany.depot.config.BigTableSinkConfig;
-import com.gotocompany.depot.log.LogSink;
-import com.gotocompany.depot.log.LogSinkFactory;
-import com.gotocompany.depot.metrics.StatsDReporter;
-import com.gotocompany.depot.redis.RedisSink;
-import com.gotocompany.depot.redis.RedisSinkFactory;
 import com.gotocompany.stencil.client.StencilClient;
 import org.aeonbits.owner.ConfigFactory;
 
@@ -42,6 +45,7 @@ public class SinkFactory {
     private BigTableSinkFactory bigTableSinkFactory;
     private LogSinkFactory logSinkFactory;
     private RedisSinkFactory redisSinkFactory;
+    private com.gotocompany.depot.http.HttpSinkFactory httpv2SinkFactory;
 
     public SinkFactory(KafkaConsumerConfig kafkaConsumerConfig,
                        StatsDReporter statsDReporter,
@@ -93,6 +97,13 @@ public class SinkFactory {
                         statsDReporter);
                 bigTableSinkFactory.init();
                 return;
+            case HTTPV2:
+                HttpV2SinkUtils.addAdditionalConfigsForHttpV2Sink(config);
+                httpv2SinkFactory = new com.gotocompany.depot.http.HttpSinkFactory(
+                        ConfigFactory.create(HttpSinkConfig.class, config),
+                        statsDReporter);
+                httpv2SinkFactory.init();
+                return;
             default:
                 throw new ConfigurationException("Invalid Firehose SINK_TYPE");
         }
@@ -126,6 +137,8 @@ public class SinkFactory {
                 return new GenericSink(new FirehoseInstrumentation(statsDReporter, BigTableSink.class), sinkType.name(), bigTableSinkFactory.create());
             case MONGODB:
                 return MongoSinkFactory.create(config, statsDReporter, stencilClient);
+            case HTTPV2:
+                return new GenericSink(new FirehoseInstrumentation(statsDReporter, HttpSink.class), sinkType.name(), httpv2SinkFactory.create());
             default:
                 throw new ConfigurationException("Invalid Firehose SINK_TYPE");
         }
