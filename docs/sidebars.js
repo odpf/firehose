@@ -18,6 +18,7 @@ module.exports = {
       label: "Sinks",
       collapsed: false,
       items: [
+        "sinks/httpv2-sink",
         "sinks/http-sink",
         "sinks/grpc-sink",
         "sinks/jdbc-sink",
