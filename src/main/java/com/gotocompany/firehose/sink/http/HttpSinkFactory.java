@@ -37,7 +37,6 @@ public class HttpSinkFactory {
      */
     public static AbstractSink create(Map<String, String> configuration, StatsDReporter statsDReporter, StencilClient stencilClient) {
         HttpSinkConfig httpSinkConfig = ConfigFactory.create(HttpSinkConfig.class, configuration);
-
         FirehoseInstrumentation firehoseInstrumentation = new FirehoseInstrumentation(statsDReporter, HttpSinkFactory.class);
 
         CloseableHttpClient closeableHttpClient = newHttpClient(httpSinkConfig, statsDReporter);

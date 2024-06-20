@@ -151,3 +151,12 @@ This config if set to `true` will enable the simple date format (Eg. - `May 3, 2
 - Example value: `false`
 - Type: `optional`
 - Default value: `true`
+
+### `SINK_HTTP_SERIALIZER_JSON_TYPECAST`
+
+Defines the mapping for field typecasting of the resulting JSON Serialization. This configuration could accept multiple mappings for multiple JSON Path
+Currently supported typecasting target: DOUBLE, INTEGER, LONG, STRING
+
+- Example value: `[{"jsonPath": "$.root.someIntegerField", "type": "INTEGER"}, {"jsonPath": "$..[*].doubleField", "type": "DOUBLE"}]`
+- Type: `optional`
+- Default Value: `[]`

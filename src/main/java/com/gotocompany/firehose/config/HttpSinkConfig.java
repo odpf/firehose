@@ -1,5 +1,6 @@
 package com.gotocompany.firehose.config;
 
+import com.gotocompany.firehose.config.converter.HttpSinkSerializerJsonTypecastConfigConverter;
 import com.gotocompany.firehose.config.enums.HttpSinkDataFormatType;
 import com.gotocompany.firehose.config.enums.HttpSinkParameterPlacementType;
 import com.gotocompany.firehose.config.enums.HttpSinkParameterSourceType;
@@ -11,6 +12,7 @@ import com.gotocompany.firehose.config.converter.HttpSinkParameterSourceTypeConv
 import com.gotocompany.firehose.config.converter.RangeToHashMapConverter;
 
 import java.util.Map;
+import java.util.function.Function;
 
 public interface HttpSinkConfig extends AppConfig {
 
@@ -93,5 +95,10 @@ public interface HttpSinkConfig extends AppConfig {
     @Key("SINK_HTTP_SIMPLE_DATE_FORMAT_ENABLE")
     @DefaultValue("true")
     Boolean getSinkHttpSimpleDateFormatEnable();
+
+    @Key("SINK_HTTP_SERIALIZER_JSON_TYPECAST")
+    @ConverterClass(HttpSinkSerializerJsonTypecastConfigConverter.class)
+    @DefaultValue("[]")
+    Map<String, Function<String, Object>> getSinkHttpSerializerJsonTypecast();
 
 }

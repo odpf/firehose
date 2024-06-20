@@ -8,6 +8,7 @@ import com.gotocompany.firehose.serializer.MessageSerializer;
 import com.gotocompany.firehose.serializer.MessageToJson;
 import com.gotocompany.firehose.serializer.MessageToTemplatizedJson;
 import com.gotocompany.depot.metrics.StatsDReporter;
+import com.gotocompany.firehose.serializer.TypecastedJsonSerializer;
 import com.gotocompany.stencil.client.StencilClient;
 import com.gotocompany.stencil.Parser;
 import lombok.AllArgsConstructor;
@@ -34,10 +35,11 @@ public class SerializerFactory {
             Parser protoParser = stencilClient.getParser(httpSinkConfig.getInputSchemaProtoClass());
             if (httpSinkConfig.getSinkHttpJsonBodyTemplate().isEmpty()) {
                 firehoseInstrumentation.logDebug("Serializer type: EsbMessageToJson", HttpSinkDataFormatType.JSON);
-                return new MessageToJson(protoParser, false, httpSinkConfig.getSinkHttpSimpleDateFormatEnable());
+                return getTypecastedJsonSerializer(new MessageToJson(protoParser, false, httpSinkConfig.getSinkHttpSimpleDateFormatEnable()));
             } else {
                 firehoseInstrumentation.logDebug("Serializer type: EsbMessageToTemplatizedJson");
-                return MessageToTemplatizedJson.create(new FirehoseInstrumentation(statsDReporter, MessageToTemplatizedJson.class), httpSinkConfig.getSinkHttpJsonBodyTemplate(), protoParser);
+                return getTypecastedJsonSerializer(
+                        MessageToTemplatizedJson.create(new FirehoseInstrumentation(statsDReporter, MessageToTemplatizedJson.class), httpSinkConfig.getSinkHttpJsonBodyTemplate(), protoParser));
             }
         }
 
@@ -46,6 +48,10 @@ public class SerializerFactory {
 
         firehoseInstrumentation.logDebug("Serializer type: JsonWrappedProtoByte");
         return new JsonWrappedProtoByte();
+    }
+
+    private MessageSerializer getTypecastedJsonSerializer(MessageSerializer messageSerializer) {
+        return new TypecastedJsonSerializer(messageSerializer, httpSinkConfig);
     }
 
     private boolean isProtoSchemaEmpty() {
