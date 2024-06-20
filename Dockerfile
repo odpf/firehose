@@ -4,7 +4,7 @@ RUN curl -L http://search.maven.org/remotecontent?filepath=org/jolokia/jolokia-j
 COPY ./ ./
 RUN ./gradlew build
 
-FROM openjdk:8-jre
+FROM eclipse-temurin:8u412-b08-jre
 RUN apt-get update && apt-get upgrade -y curl
 COPY --from=GRADLE_BUILD ./build/libs/ /opt/firehose/bin
 COPY --from=GRADLE_BUILD ./jolokia-jvm-agent.jar /opt/firehose
