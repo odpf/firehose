@@ -53,10 +53,10 @@ public class GrpcSink extends AbstractSink {
         for (Message message : this.messages) {
             DynamicMessage response = grpcClient.execute(message.getLogMessage(), message.getHeaders());
             getFirehoseInstrumentation().logDebug("Response: {}", response);
-            Object m = response.getField(response.getDescriptorForType().findFieldByName("success"));
 
             if (retryEvaluator.evaluate(response)) {
                 message.setErrorInfo(new ErrorInfo(new DefaultException("DEFAULT"), ErrorType.SINK_RETRYABLE_ERROR));
+                failedMessages.add(message);
             }
         }
         getFirehoseInstrumentation().logDebug("Failed messages count: {}", failedMessages.size());
