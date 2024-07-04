@@ -55,7 +55,7 @@ public class GrpcSink extends AbstractSink {
             getFirehoseInstrumentation().logDebug("Response: {}", response);
             Object m = response.getField(response.getDescriptorForType().findFieldByName("success"));
 
-            if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression()) && retryEvaluator.evaluate(response)) {
+            if (retryEvaluator.evaluate(response)) {
                 message.setErrorInfo(new ErrorInfo(new DefaultException("DEFAULT"), ErrorType.SINK_RETRYABLE_ERROR));
             }
         }
