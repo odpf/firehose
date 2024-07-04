@@ -1,7 +1,11 @@
 package com.gotocompany.firehose.sink.grpc;
 
 
-
+import com.gotocompany.depot.error.ErrorInfo;
+import com.gotocompany.depot.error.ErrorType;
+import com.gotocompany.firehose.config.GrpcSinkConfig;
+import com.gotocompany.firehose.evaluator.CELPayloadEvaluator;
+import com.gotocompany.firehose.exception.DefaultException;
 import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
@@ -9,6 +13,7 @@ import com.gotocompany.firehose.sink.AbstractSink;
 import com.gotocompany.firehose.sink.grpc.client.GrpcClient;
 import com.google.protobuf.DynamicMessage;
 import com.gotocompany.stencil.client.StencilClient;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,13 +26,24 @@ import java.util.List;
 public class GrpcSink extends AbstractSink {
 
     private final GrpcClient grpcClient;
+    private final StencilClient stencilClient;
+    private final GrpcSinkConfig grpcSinkConfig;
     private List<Message> messages;
-    private StencilClient stencilClient;
+    private CELPayloadEvaluator retryEvaluator;
 
-    public GrpcSink(FirehoseInstrumentation firehoseInstrumentation, GrpcClient grpcClient, StencilClient stencilClient) {
+    public GrpcSink(FirehoseInstrumentation firehoseInstrumentation,
+                    GrpcClient grpcClient,
+                    StencilClient stencilClient,
+                    GrpcSinkConfig grpcSinkConfig) {
         super(firehoseInstrumentation, "grpc");
         this.grpcClient = grpcClient;
         this.stencilClient = stencilClient;
+        this.grpcSinkConfig = grpcSinkConfig;
+        if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
+            this.retryEvaluator = new CELPayloadEvaluator(
+                    stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
+                    grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
+        }
     }
 
     @Override
@@ -38,11 +54,9 @@ public class GrpcSink extends AbstractSink {
             DynamicMessage response = grpcClient.execute(message.getLogMessage(), message.getHeaders());
             getFirehoseInstrumentation().logDebug("Response: {}", response);
             Object m = response.getField(response.getDescriptorForType().findFieldByName("success"));
-            boolean success = (m != null) ? Boolean.valueOf(String.valueOf(m)) : false;
 
-            if (!success) {
-                getFirehoseInstrumentation().logWarn("Grpc Service returned error");
-                failedMessages.add(message);
+            if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression()) && retryEvaluator.evaluate(response)) {
+                message.setErrorInfo(new ErrorInfo(new DefaultException("DEFAULT"), ErrorType.SINK_RETRYABLE_ERROR));
             }
         }
         getFirehoseInstrumentation().logDebug("Failed messages count: {}", failedMessages.size());

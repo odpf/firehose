@@ -30,6 +30,10 @@ public interface GrpcSinkConfig extends AppConfig {
     @Config.Key("SINK_GRPC_ARG_DEADLINE_MS")
     Long getSinkGrpcArgDeadlineMS();
 
+    @Config.Key("SINK_GRPC_RESPONSE_RETRY_CEL_EXPRESSION")
+    @DefaultValue("GenericResponse.success == false")
+    String getSinkGrpcResponseRetryCELExpression();
+
     @Key("SINK_GRPC_METADATA")
     @DefaultValue("")
     @ConverterClass(GrpcMetadataConverter.class)
