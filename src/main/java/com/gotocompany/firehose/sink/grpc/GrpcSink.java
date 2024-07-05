@@ -60,8 +60,8 @@ public class GrpcSink extends AbstractSink {
                 getFirehoseInstrumentation().logWarn("Grpc Service returned error");
                 failedMessages.add(message);
             }
-            if (retryEvaluator.evaluate(response)) {
-                message.setErrorInfo(new ErrorInfo(new DefaultException("DEFAULT"), ErrorType.SINK_RETRYABLE_ERROR));
+            if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
+                setRetryEvaluatorErrorInfo(message, response);
             }
         }
         getFirehoseInstrumentation().logDebug("Failed messages count: {}", failedMessages.size());
@@ -78,5 +78,14 @@ public class GrpcSink extends AbstractSink {
         getFirehoseInstrumentation().logInfo("GRPC connection closing");
         this.messages = new ArrayList<>();
         stencilClient.close();
+    }
+
+    private void setRetryEvaluatorErrorInfo(Message message, DynamicMessage dynamicMessage) {
+        boolean eligibleToRetry = retryEvaluator.evaluate(dynamicMessage);
+        if (eligibleToRetry) {
+            message.setErrorInfo(new ErrorInfo(new DefaultException("Retryable gRPC Error"), ErrorType.SINK_RETRYABLE_ERROR));
+            return;
+        }
+        message.setErrorInfo(new ErrorInfo(new DefaultException("Non Retryable gRPC Error"), ErrorType.SINK_NON_RETRYABLE_ERROR));
     }
 }
