@@ -14,13 +14,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class GRPCResponseCELPayloadEvaluator implements PayloadEvaluator<Message> {
+public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message> {
 
     private final String celExpression;
     private Script script;
     private Descriptors.Descriptor descriptor;
 
-    public GRPCResponseCELPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
+    public GrpcResponseCELPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
         this.celExpression = celExpression;
         this.descriptor = descriptor;
         this.script = buildScript(descriptor);
@@ -41,8 +41,10 @@ public class GRPCResponseCELPayloadEvaluator implements PayloadEvaluator<Message
     private Script getScript(Descriptors.Descriptor descriptor) throws ScriptCreateException {
         if (!descriptor.equals(this.descriptor)) {
             synchronized (this) {
-                this.script = buildScript(descriptor);
-                this.descriptor = descriptor;
+                if (!descriptor.equals(this.descriptor)) {
+                    this.script = buildScript(descriptor);
+                    this.descriptor = descriptor;
+                }
             }
         }
         return this.script;
@@ -50,6 +52,7 @@ public class GRPCResponseCELPayloadEvaluator implements PayloadEvaluator<Message
 
     private Script buildScript(Descriptors.Descriptor descriptor) {
         try {
+            log.info("Building new CEL Script");
             return ScriptHost.newBuilder()
                     .build()
                     .buildScript(this.celExpression)
