@@ -4,7 +4,7 @@ package com.gotocompany.firehose.sink.grpc;
 import com.gotocompany.depot.error.ErrorInfo;
 import com.gotocompany.depot.error.ErrorType;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
-import com.gotocompany.firehose.evaluator.CELPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.GRPCResponseCELPayloadEvaluator;
 import com.gotocompany.firehose.exception.DefaultException;
 import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.message.Message;
@@ -29,7 +29,7 @@ public class GrpcSink extends AbstractSink {
     private final StencilClient stencilClient;
     private final GrpcSinkConfig grpcSinkConfig;
     private List<Message> messages;
-    private CELPayloadEvaluator retryEvaluator;
+    private GRPCResponseCELPayloadEvaluator retryEvaluator;
 
     public GrpcSink(FirehoseInstrumentation firehoseInstrumentation,
                     GrpcClient grpcClient,
@@ -40,7 +40,7 @@ public class GrpcSink extends AbstractSink {
         this.stencilClient = stencilClient;
         this.grpcSinkConfig = grpcSinkConfig;
         if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
-            this.retryEvaluator = new CELPayloadEvaluator(
+            this.retryEvaluator = new GRPCResponseCELPayloadEvaluator(
                     stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
                     grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
         }
