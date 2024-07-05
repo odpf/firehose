@@ -1,5 +1,6 @@
 package com.gotocompany.firehose.sink.grpc;
 
+import com.gotocompany.firehose.config.GrpcSinkConfig;
 import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
@@ -40,10 +41,13 @@ public class GrpcSinkTest {
     @Mock
     private FirehoseInstrumentation firehoseInstrumentation;
 
+    @Mock
+    private GrpcSinkConfig grpcSinkConfig;
+
     @Before
     public void setUp() {
         initMocks(this);
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
     }
 
     @Test
@@ -85,7 +89,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldCloseStencilClient() throws IOException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
 
         sink.close();
         verify(stencilClient, times(1)).close();
@@ -93,7 +97,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldLogWhenClosingConnection() throws IOException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
 
         sink.close();
         verify(firehoseInstrumentation, times(1)).logInfo("GRPC connection closing");
