@@ -1,6 +1,9 @@
 package com.gotocompany.firehose.sink.grpc;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
+import com.gotocompany.firehose.consumer.GenericError;
+import com.gotocompany.firehose.consumer.GenericResponse;
 import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
@@ -13,7 +16,9 @@ import com.gotocompany.stencil.client.StencilClient;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -101,5 +106,65 @@ public class GrpcSinkTest {
 
         sink.close();
         verify(firehoseInstrumentation, times(1)).logInfo("GRPC connection closing");
+    }
+
+    @Test
+    public void shouldReturnFailedMessagesWithRetryableErrorsWhenCELExpressionMatches() throws InvalidProtocolBufferException {
+        Message payload = new Message(new byte[]{}, new byte[]{}, "topic", 0, 1);
+        GenericResponse response = GenericResponse.newBuilder()
+                .setSuccess(false)
+                .setDetail("detail")
+                .addErrors(GenericError.newBuilder()
+                        .setCode("4000")
+                        .setCause("cause")
+                        .setEntity("gtf")
+                        .build())
+                .build();
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(
+                response.getDescriptorForType(),
+                response.toByteArray()
+        );
+        when(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())
+                .thenReturn("GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"4000\")");
+        when(grpcClient.execute(any(), any()))
+                .thenReturn(dynamicMessage);
+        when(stencilClient.get(any()))
+                .thenReturn(GenericResponse.getDescriptor());
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+
+        List<Message> result = sink.pushMessage(Collections.singletonList(payload));
+
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals(result.get(0).getErrorInfo().getErrorType(), ErrorType.SINK_RETRYABLE_ERROR);
+    }
+
+    @Test
+    public void shouldReturnFailedMessagesWithNonRetryableErrorsWhenCELExpressionDoesntMatch() throws InvalidProtocolBufferException {
+        Message payload = new Message(new byte[]{}, new byte[]{}, "topic", 0, 1);
+        GenericResponse response = GenericResponse.newBuilder()
+                .setSuccess(false)
+                .setDetail("detail")
+                .addErrors(GenericError.newBuilder()
+                        .setCode("4000")
+                        .setCause("cause")
+                        .setEntity("gtf")
+                        .build())
+                .build();
+        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(
+                response.getDescriptorForType(),
+                response.toByteArray()
+        );
+        when(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())
+                .thenReturn("GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"5000\")");
+        when(grpcClient.execute(any(), any()))
+                .thenReturn(dynamicMessage);
+        when(stencilClient.get(any()))
+                .thenReturn(GenericResponse.getDescriptor());
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+
+        List<Message> result = sink.pushMessage(Collections.singletonList(payload));
+
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals(result.get(0).getErrorInfo().getErrorType(), ErrorType.SINK_NON_RETRYABLE_ERROR);
     }
 }
