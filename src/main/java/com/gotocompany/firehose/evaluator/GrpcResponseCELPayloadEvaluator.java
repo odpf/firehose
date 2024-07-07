@@ -38,26 +38,26 @@ public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message
         }
     }
 
-    private Script getScript(Descriptors.Descriptor descriptor) throws ScriptCreateException {
-        if (!descriptor.equals(this.descriptor)) {
+    private Script getScript(Descriptors.Descriptor payloadDescriptor) throws ScriptCreateException {
+        if (!payloadDescriptor.equals(this.descriptor)) {
             synchronized (this) {
-                if (!descriptor.equals(this.descriptor)) {
-                    this.script = buildScript(descriptor);
-                    this.descriptor = descriptor;
+                if (!payloadDescriptor.equals(this.descriptor)) {
+                    this.script = buildScript(payloadDescriptor);
+                    this.descriptor = payloadDescriptor;
                 }
             }
         }
         return this.script;
     }
 
-    private Script buildScript(Descriptors.Descriptor descriptor) {
+    private Script buildScript(Descriptors.Descriptor payloadDescriptor) {
         try {
             log.info("Building new CEL Script");
             return ScriptHost.newBuilder()
                     .build()
                     .buildScript(this.celExpression)
-                    .withDeclarations(Decls.newVar(descriptor.getFullName(), Decls.newObjectType(descriptor.getFullName())))
-                    .withTypes(DynamicMessage.newBuilder(descriptor).getDefaultInstanceForType())
+                    .withDeclarations(Decls.newVar(payloadDescriptor.getFullName(), Decls.newObjectType(payloadDescriptor.getFullName())))
+                    .withTypes(DynamicMessage.newBuilder(payloadDescriptor).getDefaultInstanceForType())
                     .build();
         } catch (ScriptCreateException e) {
             throw new IllegalArgumentException("Failed to build CEL Script due to : " + e.getMessage(), e);
