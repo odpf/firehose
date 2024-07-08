@@ -65,3 +65,11 @@ Defines the amount of time (in milliseconds) gRPC clients are willing to wait fo
 
 - Example value: `1000`
 - Type: `optional`
+
+### `SINK_GRPC_RESPONSE_RETRY_CEL_EXPRESSION`
+
+Defines the CEL expression used to evaluate whether gRPC sink call should be retried or not based on the gRPC response
+
+- Example value: `com.goto.entity.GrpcResponse.success == false && com.goto.entity.GrpcResponse.errors.exists(e, e.code == "4000")`
+- Type: `optional`
+- Default value: ``
