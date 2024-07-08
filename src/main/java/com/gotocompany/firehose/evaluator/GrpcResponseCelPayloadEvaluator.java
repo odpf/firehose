@@ -17,16 +17,31 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Implementation of PayloadEvaluator that evaluates gRPC responses using CEL (Common Expression Language).
+ */
 @Slf4j
 public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message> {
 
     private CelRuntime.Program celProgram;
 
+    /**
+     * Constructs a GrpcResponseCelPayloadEvaluator with the specified descriptor and CEL expression.
+     *
+     * @param descriptor the descriptor of the gRPC message
+     * @param celExpression the CEL expression to evaluate against the message
+     */
     public GrpcResponseCelPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
         buildCelEnvironment(descriptor, celExpression);
     }
 
-
+    /**
+     * Evaluates the given gRPC message payload using the CEL program.
+     *
+     * @param payload the gRPC message to be evaluated
+     * @return true if the payload passes the evaluation, false otherwise
+     * @throws DeserializerException if the evaluation fails
+     */
     @Override
     public boolean evaluate(Message payload) {
         try {
@@ -38,6 +53,13 @@ public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message
         }
     }
 
+    /**
+     * Builds the CEL environment required to evaluate the CEL expression.
+     *
+     * @param descriptor the descriptor of the gRPC message
+     * @param celExpression the CEL expression to evaluate against the message
+     * @throws IllegalArgumentException if the CEL expression is invalid or if the evaluator cannot be constructed
+     */
     private void buildCelEnvironment(Descriptors.Descriptor descriptor, String celExpression)  {
         try {
             CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder()
