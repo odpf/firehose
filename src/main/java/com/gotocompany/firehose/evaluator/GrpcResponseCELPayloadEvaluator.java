@@ -18,11 +18,9 @@ public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message
 
     private final String celExpression;
     private Script script;
-    private Descriptors.Descriptor descriptor;
 
     public GrpcResponseCELPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
         this.celExpression = celExpression;
-        this.descriptor = descriptor;
         this.script = buildScript(descriptor);
     }
 
@@ -31,23 +29,11 @@ public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message
         try {
             Map<String, Object> arguments = new HashMap<>();
             arguments.put(payload.getDescriptorForType().getFullName(), payload);
-            return getScript(payload.getDescriptorForType()).execute(Boolean.class, arguments);
+            return this.script.execute(Boolean.class, arguments);
         } catch (ScriptException e) {
             throw new IllegalArgumentException(
                     "Failed to evaluate payload with CEL Expression with reason: " + e.getMessage(), e);
         }
-    }
-
-    private Script getScript(Descriptors.Descriptor payloadDescriptor) throws ScriptCreateException {
-        if (!payloadDescriptor.equals(this.descriptor)) {
-            synchronized (this) {
-                if (!payloadDescriptor.equals(this.descriptor)) {
-                    this.script = buildScript(payloadDescriptor);
-                    this.descriptor = payloadDescriptor;
-                }
-            }
-        }
-        return this.script;
     }
 
     private Script buildScript(Descriptors.Descriptor payloadDescriptor) {

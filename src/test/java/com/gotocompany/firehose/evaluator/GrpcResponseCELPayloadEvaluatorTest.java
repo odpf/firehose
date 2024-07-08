@@ -1,8 +1,5 @@
 package com.gotocompany.firehose.evaluator;
 
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import com.gotocompany.firehose.consumer.GenericError;
 import com.gotocompany.firehose.consumer.GenericResponse;
@@ -50,34 +47,6 @@ public class GrpcResponseCELPayloadEvaluatorTest {
                 .build();
 
         boolean result = grpcPayloadEvaluator.evaluate(genericResponse);
-
-        Assertions.assertFalse(result);
-    }
-
-    @Test
-    public void shouldEvaluateResponseWhenDescriptorUpdated() throws Descriptors.DescriptorValidationException {
-        Descriptors.Descriptor baseDescriptor = GenericResponse.getDescriptor();
-        DescriptorProtos.FieldDescriptorProto newFieldProto = DescriptorProtos.FieldDescriptorProto.newBuilder()
-                .setName("new_field")
-                .setNumber(4)
-                .setType(DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING)
-                .build();
-        DescriptorProtos.DescriptorProto newDescriptorProto = baseDescriptor.toProto().toBuilder()
-                .addField(newFieldProto)
-                .build();
-        Descriptors.FileDescriptor newFileDescriptor = Descriptors.FileDescriptor.buildFrom(DescriptorProtos.FileDescriptorProto
-                .newBuilder()
-                .setName("new.proto")
-                .addMessageType(newDescriptorProto)
-                .addMessageType(GenericError.getDescriptor().toProto())
-                .build(), new Descriptors.FileDescriptor[]{});
-        Descriptors.Descriptor genericResponseDescriptor = newFileDescriptor.findMessageTypeByName("GenericResponse");
-        DynamicMessage dynamicMessage = DynamicMessage.newBuilder(genericResponseDescriptor)
-                .setField(genericResponseDescriptor.findFieldByName("success"), false)
-                .setField(genericResponseDescriptor.findFieldByName("new_field"), "new_field")
-                .build();
-
-        boolean result = grpcPayloadEvaluator.evaluate(dynamicMessage);
 
         Assertions.assertFalse(result);
     }
