@@ -18,11 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message>{
+public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message> {
 
     private CelRuntime.Program celProgram;
 
-    public GrpcResponseCELPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
+    public GrpcResponseCelPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
         buildCelEnvironment(descriptor, celExpression);
     }
 

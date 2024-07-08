@@ -7,14 +7,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
-public class GrpcResponseCELPayloadEvaluatorTest {
+public class GrpcResponseCelPayloadEvaluatorTest {
 
     private static final String CEL_EXPRESSION = "GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"400\")";
     private PayloadEvaluator<Message> grpcPayloadEvaluator;
 
     @Before
     public void setup() {
-        this.grpcPayloadEvaluator = new GrpcResponseCELPayloadEvaluator(GenericResponse.getDescriptor(), CEL_EXPRESSION);
+        this.grpcPayloadEvaluator = new GrpcResponseCelPayloadEvaluator(GenericResponse.getDescriptor(), CEL_EXPRESSION);
     }
 
     @Test
@@ -52,8 +52,8 @@ public class GrpcResponseCELPayloadEvaluatorTest {
     }
 
     @Test
-    public void construct_shouldThrowIllegalArgumentExceptionWhenCelValidationFailed() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new GrpcResponseCELPayloadEvaluator(
+    public void shouldThrowIllegalArgumentExceptionWhenCelValidationFailed() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new GrpcResponseCelPayloadEvaluator(
                 GenericResponse.getDescriptor(), "GenericResponse.nonExistField == true"));
     }
 }
