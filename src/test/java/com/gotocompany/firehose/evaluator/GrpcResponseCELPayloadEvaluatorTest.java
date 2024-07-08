@@ -52,12 +52,8 @@ public class GrpcResponseCELPayloadEvaluatorTest {
     }
 
     @Test
-    public void shouldThrowIllegalArgumentExceptionWhenPayloadNotMatchingDescriptor() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> grpcPayloadEvaluator.evaluate(GenericError.newBuilder()
-                        .setCause("Unknown")
-                        .setCode("500")
-                        .setEntity("GoFin")
-                        .build()));
+    public void construct_shouldThrowIllegalArgumentExceptionWhenCelValidationFailed() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new GrpcResponseCELPayloadEvaluator(
+                GenericResponse.getDescriptor(), "GenericResponse.nonExistField == true"));
     }
 }

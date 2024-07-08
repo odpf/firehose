@@ -1,52 +1,60 @@
 package com.gotocompany.firehose.evaluator;
 
 import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
+import com.gotocompany.firehose.exception.DeserializerException;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelValidationException;
+import dev.cel.common.types.StructTypeReference;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.parser.CelStandardMacro;
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.projectnessie.cel.checker.Decls;
-import org.projectnessie.cel.tools.Script;
-import org.projectnessie.cel.tools.ScriptCreateException;
-import org.projectnessie.cel.tools.ScriptException;
-import org.projectnessie.cel.tools.ScriptHost;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message> {
+public class GrpcResponseCELPayloadEvaluator implements PayloadEvaluator<Message>{
 
-    private final String celExpression;
-    private Script script;
+    private CelRuntime.Program celProgram;
 
     public GrpcResponseCELPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
-        this.celExpression = celExpression;
-        this.script = buildScript(descriptor);
+        buildCelEnvironment(descriptor, celExpression);
     }
+
 
     @Override
     public boolean evaluate(Message payload) {
         try {
-            Map<String, Object> arguments = new HashMap<>();
-            arguments.put(payload.getDescriptorForType().getFullName(), payload);
-            return this.script.execute(Boolean.class, arguments);
-        } catch (ScriptException e) {
-            throw new IllegalArgumentException(
-                    "Failed to evaluate payload with CEL Expression with reason: " + e.getMessage(), e);
+            Map<String, Object> args = new HashMap<>();
+            args.put(payload.getDescriptorForType().getFullName(), payload);
+            return (boolean) celProgram.eval(args);
+        } catch (CelEvaluationException e) {
+            throw new DeserializerException("Failed to evaluate payload", e);
         }
     }
 
-    private Script buildScript(Descriptors.Descriptor payloadDescriptor) {
+    private void buildCelEnvironment(Descriptors.Descriptor descriptor, String celExpression)  {
         try {
-            log.info("Building new CEL Script");
-            return ScriptHost.newBuilder()
-                    .build()
-                    .buildScript(this.celExpression)
-                    .withDeclarations(Decls.newVar(payloadDescriptor.getFullName(), Decls.newObjectType(payloadDescriptor.getFullName())))
-                    .withTypes(DynamicMessage.newBuilder(payloadDescriptor).getDefaultInstanceForType())
+            CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder()
+                    .setStandardMacros(CelStandardMacro.EXISTS)
+                    .addVar(descriptor.getFullName(), StructTypeReference.create(descriptor.getFullName()))
+                    .addMessageTypes(descriptor)
                     .build();
-        } catch (ScriptCreateException e) {
-            throw new IllegalArgumentException("Failed to build CEL Script due to : " + e.getMessage(), e);
+            CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder()
+                    .build();
+            CelAbstractSyntaxTree celAbstractSyntaxTree = celCompiler.compile(celExpression)
+                    .getAst();
+            this.celProgram = celRuntime.createProgram(celAbstractSyntaxTree);
+        } catch (CelValidationException e) {
+            throw new IllegalArgumentException("Invalid CEL expression: " + celExpression, e);
+        } catch (CelEvaluationException e) {
+            throw new IllegalArgumentException("Failed to construct CEL evaluator: " + e.getMessage(), e);
         }
     }
+
 }
