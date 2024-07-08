@@ -4,6 +4,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
 import com.gotocompany.firehose.consumer.GenericError;
 import com.gotocompany.firehose.consumer.GenericResponse;
+import com.gotocompany.firehose.evaluator.DefaultGrpcPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.GrpcResponseCelPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.PayloadEvaluator;
 import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.message.Message;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
@@ -48,10 +51,15 @@ public class GrpcSinkTest {
     @Mock
     private GrpcSinkConfig grpcSinkConfig;
 
+    private PayloadEvaluator<com.google.protobuf.Message> grpcResponsePayloadEvaluator;
     @Before
     public void setUp() {
         initMocks(this);
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+        this.grpcResponsePayloadEvaluator = new GrpcResponseCelPayloadEvaluator(
+                GenericResponse.getDescriptor(),
+                "GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"4000\")"
+        );
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, new DefaultGrpcPayloadEvaluator());
     }
 
     @Test
@@ -93,7 +101,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldCloseStencilClient() throws IOException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
 
         sink.close();
         verify(stencilClient, times(1)).close();
@@ -101,7 +109,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldLogWhenClosingConnection() throws IOException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
 
         sink.close();
         verify(firehoseInstrumentation, times(1)).logInfo("GRPC connection closing");
@@ -109,6 +117,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldReturnFailedMessagesWithRetryableErrorsWhenCELExpressionMatches() throws InvalidProtocolBufferException {
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
         Message payload = new Message(new byte[]{}, new byte[]{}, "topic", 0, 1);
         GenericResponse response = GenericResponse.newBuilder()
                 .setSuccess(false)
@@ -123,13 +132,9 @@ public class GrpcSinkTest {
                 response.getDescriptorForType(),
                 response.toByteArray()
         );
-        when(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())
-                .thenReturn("GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"4000\")");
         when(grpcClient.execute(any(), any()))
                 .thenReturn(dynamicMessage);
-        when(stencilClient.get(any()))
-                .thenReturn(GenericResponse.getDescriptor());
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, grpcResponsePayloadEvaluator);
 
         List<Message> result = sink.pushMessage(Collections.singletonList(payload));
 
@@ -139,12 +144,13 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldReturnFailedMessagesWithNonRetryableErrorsWhenCELExpressionDoesntMatch() throws InvalidProtocolBufferException {
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
         Message payload = new Message(new byte[]{}, new byte[]{}, "topic", 0, 1);
         GenericResponse response = GenericResponse.newBuilder()
                 .setSuccess(false)
                 .setDetail("detail")
                 .addErrors(GenericError.newBuilder()
-                        .setCode("4000")
+                        .setCode("not-exist-code")
                         .setCause("cause")
                         .setEntity("gtf")
                         .build())
@@ -153,13 +159,9 @@ public class GrpcSinkTest {
                 response.getDescriptorForType(),
                 response.toByteArray()
         );
-        when(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())
-                .thenReturn("GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"5000\")");
         when(grpcClient.execute(any(), any()))
                 .thenReturn(dynamicMessage);
-        when(stencilClient.get(any()))
-                .thenReturn(GenericResponse.getDescriptor());
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, grpcResponsePayloadEvaluator);
 
         List<Message> result = sink.pushMessage(Collections.singletonList(payload));
 

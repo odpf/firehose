@@ -1,7 +1,11 @@
 package com.gotocompany.firehose.sink.grpc;
 
 
+import com.google.protobuf.Message;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
+import com.gotocompany.firehose.evaluator.DefaultGrpcPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.GrpcResponseCelPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.PayloadEvaluator;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
 import com.gotocompany.firehose.sink.grpc.client.GrpcClient;
 import com.gotocompany.depot.metrics.StatsDReporter;
@@ -10,6 +14,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import com.gotocompany.stencil.client.StencilClient;
 import org.aeonbits.owner.ConfigFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -37,8 +42,17 @@ public class GrpcSinkFactory {
 
         GrpcClient grpcClient = new GrpcClient(new FirehoseInstrumentation(statsDReporter, GrpcClient.class), grpcConfig, managedChannel, stencilClient);
         firehoseInstrumentation.logInfo("GRPC connection established");
+        PayloadEvaluator<Message> grpcResponseRetryEvaluator = instantiateRetryEvaluator(grpcConfig, stencilClient);
+        return new GrpcSink(new FirehoseInstrumentation(statsDReporter, GrpcSink.class), grpcClient, stencilClient, grpcConfig, grpcResponseRetryEvaluator);
+    }
 
-        return new GrpcSink(new FirehoseInstrumentation(statsDReporter, GrpcSink.class), grpcClient, stencilClient, grpcConfig);
+    private static PayloadEvaluator<Message> instantiateRetryEvaluator(GrpcSinkConfig grpcSinkConfig, StencilClient stencilClient) {
+        if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
+            return new GrpcResponseCelPayloadEvaluator(
+                    stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
+                    grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
+        }
+        return new DefaultGrpcPayloadEvaluator();
     }
 
 }
