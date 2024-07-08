@@ -39,11 +39,7 @@ public class GrpcSink extends AbstractSink {
         this.grpcClient = grpcClient;
         this.stencilClient = stencilClient;
         this.grpcSinkConfig = grpcSinkConfig;
-        if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
-            this.retryEvaluator = new GrpcResponseCELPayloadEvaluator(
-                    stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
-                    grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
-        }
+        instantiateRetryEvaluator();
     }
 
     @Override
@@ -59,9 +55,9 @@ public class GrpcSink extends AbstractSink {
             if (!success) {
                 getFirehoseInstrumentation().logWarn("Grpc Service returned error");
                 failedMessages.add(message);
-            }
-            if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
-                setRetryEvaluatorErrorInfo(message, response);
+                if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
+                    setRetryableErrorInfo(message, response);
+                }
             }
         }
         getFirehoseInstrumentation().logDebug("Failed messages count: {}", failedMessages.size());
@@ -80,7 +76,15 @@ public class GrpcSink extends AbstractSink {
         stencilClient.close();
     }
 
-    private void setRetryEvaluatorErrorInfo(Message message, DynamicMessage dynamicMessage) {
+    private void instantiateRetryEvaluator() {
+        if (StringUtils.isNotBlank(grpcSinkConfig.getSinkGrpcResponseRetryCELExpression())) {
+            this.retryEvaluator = new GrpcResponseCELPayloadEvaluator(
+                    stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
+                    grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
+        }
+    }
+
+    private void setRetryableErrorInfo(Message message, DynamicMessage dynamicMessage) {
         boolean eligibleToRetry = retryEvaluator.evaluate(dynamicMessage);
         if (eligibleToRetry) {
             message.setErrorInfo(new ErrorInfo(new DefaultException("Retryable gRPC Error"), ErrorType.SINK_RETRYABLE_ERROR));
