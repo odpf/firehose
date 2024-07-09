@@ -26,19 +26,16 @@ public class GrpcSink extends AbstractSink {
 
     private final GrpcClient grpcClient;
     private final StencilClient stencilClient;
-    private final GrpcSinkConfig grpcSinkConfig;
     private List<Message> messages;
     private PayloadEvaluator<com.google.protobuf.Message> retryEvaluator;
 
     public GrpcSink(FirehoseInstrumentation firehoseInstrumentation,
                     GrpcClient grpcClient,
                     StencilClient stencilClient,
-                    GrpcSinkConfig grpcSinkConfig,
                     PayloadEvaluator<com.google.protobuf.Message> retryEvaluator) {
         super(firehoseInstrumentation, "grpc");
         this.grpcClient = grpcClient;
         this.stencilClient = stencilClient;
-        this.grpcSinkConfig = grpcSinkConfig;
         this.retryEvaluator = retryEvaluator;
     }
 

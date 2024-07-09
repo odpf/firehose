@@ -43,7 +43,7 @@ public class GrpcSinkFactory {
         GrpcClient grpcClient = new GrpcClient(new FirehoseInstrumentation(statsDReporter, GrpcClient.class), grpcConfig, managedChannel, stencilClient);
         firehoseInstrumentation.logInfo("GRPC connection established");
         PayloadEvaluator<Message> grpcResponseRetryEvaluator = instantiateRetryEvaluator(grpcConfig, stencilClient);
-        return new GrpcSink(new FirehoseInstrumentation(statsDReporter, GrpcSink.class), grpcClient, stencilClient, grpcConfig, grpcResponseRetryEvaluator);
+        return new GrpcSink(new FirehoseInstrumentation(statsDReporter, GrpcSink.class), grpcClient, stencilClient, grpcResponseRetryEvaluator);
     }
 
     private static PayloadEvaluator<Message> instantiateRetryEvaluator(GrpcSinkConfig grpcSinkConfig, StencilClient stencilClient) {

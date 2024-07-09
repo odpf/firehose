@@ -59,7 +59,7 @@ public class GrpcSinkTest {
                 GenericResponse.getDescriptor(),
                 "GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"4000\")"
         );
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, new DefaultGrpcPayloadEvaluator());
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, new DefaultGrpcPayloadEvaluator());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldCloseStencilClient() throws IOException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, this.grpcResponsePayloadEvaluator);
 
         sink.close();
         verify(stencilClient, times(1)).close();
@@ -109,7 +109,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldLogWhenClosingConnection() throws IOException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, this.grpcResponsePayloadEvaluator);
 
         sink.close();
         verify(firehoseInstrumentation, times(1)).logInfo("GRPC connection closing");
@@ -117,7 +117,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldReturnFailedMessagesWithRetryableErrorsWhenCELExpressionMatches() throws InvalidProtocolBufferException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, this.grpcResponsePayloadEvaluator);
         Message payload = new Message(new byte[]{}, new byte[]{}, "topic", 0, 1);
         GenericResponse response = GenericResponse.newBuilder()
                 .setSuccess(false)
@@ -134,7 +134,7 @@ public class GrpcSinkTest {
         );
         when(grpcClient.execute(any(), any()))
                 .thenReturn(dynamicMessage);
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, grpcResponsePayloadEvaluator);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcResponsePayloadEvaluator);
 
         List<Message> result = sink.pushMessage(Collections.singletonList(payload));
 
@@ -144,7 +144,7 @@ public class GrpcSinkTest {
 
     @Test
     public void shouldReturnFailedMessagesWithNonRetryableErrorsWhenCELExpressionDoesntMatch() throws InvalidProtocolBufferException {
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, this.grpcResponsePayloadEvaluator);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, this.grpcResponsePayloadEvaluator);
         Message payload = new Message(new byte[]{}, new byte[]{}, "topic", 0, 1);
         GenericResponse response = GenericResponse.newBuilder()
                 .setSuccess(false)
@@ -161,7 +161,7 @@ public class GrpcSinkTest {
         );
         when(grpcClient.execute(any(), any()))
                 .thenReturn(dynamicMessage);
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcSinkConfig, grpcResponsePayloadEvaluator);
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, grpcResponsePayloadEvaluator);
 
         List<Message> result = sink.pushMessage(Collections.singletonList(payload));
 
