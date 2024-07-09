@@ -3,7 +3,7 @@ package com.gotocompany.firehose.sink.grpc;
 
 import com.google.protobuf.Message;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
-import com.gotocompany.firehose.evaluator.DefaultGrpcPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.DefaultGrpcResponsePayloadEvaluator;
 import com.gotocompany.firehose.evaluator.GrpcResponseCelPayloadEvaluator;
 import com.gotocompany.firehose.evaluator.PayloadEvaluator;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
@@ -52,7 +52,7 @@ public class GrpcSinkFactory {
                     stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
                     grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
         }
-        return new DefaultGrpcPayloadEvaluator();
+        return new DefaultGrpcResponsePayloadEvaluator();
     }
 
 }

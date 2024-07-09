@@ -72,7 +72,7 @@ Defines the CEL(Common Expression Language) expression used to evaluate whether 
 Currently, we support all standard CEL macro including: has, all, exists, exists_one, map, map_filter, filter
 For more information about CEL please refer to this documentation : https://github.com/google/cel-spec/blob/master/doc/langdef.md
 
-- Example value: `com.goto.entity.GrpcResponse.success == false && com.goto.entity.GrpcResponse.errors.exists(e, e.code == "4000")`
+- Example value: `com.gotocompany.generic.GrpcResponse.success == false && com.gotocompany.generic.GenericResponse.errors.exists(e, int(e.code) >= 400 && int(e.code) <= 500)`
 - Type: `optional`
 - Default value: ``
 - Use cases :

@@ -4,7 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
 import com.gotocompany.firehose.consumer.GenericError;
 import com.gotocompany.firehose.consumer.GenericResponse;
-import com.gotocompany.firehose.evaluator.DefaultGrpcPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.DefaultGrpcResponsePayloadEvaluator;
 import com.gotocompany.firehose.evaluator.GrpcResponseCelPayloadEvaluator;
 import com.gotocompany.firehose.evaluator.PayloadEvaluator;
 import com.gotocompany.firehose.exception.DeserializerException;
@@ -59,7 +59,7 @@ public class GrpcSinkTest {
                 GenericResponse.getDescriptor(),
                 "GenericResponse.success == false && GenericResponse.errors.exists(e, e.code == \"4000\")"
         );
-        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, new DefaultGrpcPayloadEvaluator());
+        sink = new GrpcSink(firehoseInstrumentation, grpcClient, stencilClient, new DefaultGrpcResponsePayloadEvaluator());
     }
 
     @Test
