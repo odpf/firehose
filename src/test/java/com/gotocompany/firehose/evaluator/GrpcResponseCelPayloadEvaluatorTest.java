@@ -3,6 +3,7 @@ package com.gotocompany.firehose.evaluator;
 import com.google.protobuf.Message;
 import com.gotocompany.firehose.consumer.GenericError;
 import com.gotocompany.firehose.consumer.GenericResponse;
+import com.gotocompany.firehose.consumer.TestMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -55,5 +56,23 @@ public class GrpcResponseCelPayloadEvaluatorTest {
     public void shouldThrowIllegalArgumentExceptionWhenCelValidationFailed() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> new GrpcResponseCelPayloadEvaluator(
                 GenericResponse.getDescriptor(), "GenericResponse.nonExistField == true"));
+    }
+
+    @Test
+    public void shouldThrowIllegalArgumentExceptionWhenPayloadIsNotRecognizedByDescriptor() {
+        TestMessage unregisteredPayload = TestMessage.newBuilder()
+                .setOrderUrl("url")
+                .build();
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> grpcPayloadEvaluator.evaluate(unregisteredPayload));
+    }
+
+    @Test
+    public void shouldThrowIllegalArgumentExceptionWhenCelExpressionContainsUnregisteredMacro() {
+        String expressionWithUnregisteredMacro = "GenericResponse.errors.filter(e, e.code == \"400\")";
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new GrpcResponseCelPayloadEvaluator(GenericResponse.getDescriptor(), expressionWithUnregisteredMacro));
     }
 }

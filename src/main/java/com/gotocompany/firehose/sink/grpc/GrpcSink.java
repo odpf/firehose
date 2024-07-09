@@ -3,7 +3,6 @@ package com.gotocompany.firehose.sink.grpc;
 
 import com.gotocompany.depot.error.ErrorInfo;
 import com.gotocompany.depot.error.ErrorType;
-import com.gotocompany.firehose.config.GrpcSinkConfig;
 import com.gotocompany.firehose.evaluator.PayloadEvaluator;
 import com.gotocompany.firehose.exception.DefaultException;
 import com.gotocompany.firehose.exception.DeserializerException;

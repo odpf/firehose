@@ -23,6 +23,7 @@ import java.util.Map;
 @Slf4j
 public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message> {
 
+    private final Descriptors.Descriptor descriptor;
     private CelRuntime.Program celProgram;
 
     /**
@@ -32,7 +33,8 @@ public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message
      * @param celExpression the CEL expression to evaluate against the message
      */
     public GrpcResponseCelPayloadEvaluator(Descriptors.Descriptor descriptor, String celExpression) {
-        buildCelEnvironment(descriptor, celExpression);
+        this.descriptor = descriptor;
+        buildCelEnvironment(celExpression);
     }
 
     /**
@@ -44,6 +46,9 @@ public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message
      */
     @Override
     public boolean evaluate(Message payload) {
+        if (!descriptor.getFullName().equals(payload.getDescriptorForType().getFullName())) {
+            throw new IllegalArgumentException("Payload does not match descriptor");
+        }
         try {
             Map<String, Object> args = new HashMap<>();
             args.put(payload.getDescriptorForType().getFullName(), payload);
@@ -56,16 +61,15 @@ public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message
     /**
      * Builds the CEL environment required to evaluate the CEL expression.
      *
-     * @param descriptor the descriptor of the gRPC message
      * @param celExpression the CEL expression to evaluate against the message
      * @throws IllegalArgumentException if the CEL expression is invalid or if the evaluator cannot be constructed
      */
-    private void buildCelEnvironment(Descriptors.Descriptor descriptor, String celExpression)  {
+    private void buildCelEnvironment(String celExpression)  {
         try {
             CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder()
-                    .setStandardMacros(CelStandardMacro.EXISTS)
-                    .addVar(descriptor.getFullName(), StructTypeReference.create(descriptor.getFullName()))
-                    .addMessageTypes(descriptor)
+                    .setStandardMacros(CelStandardMacro.EXISTS, CelStandardMacro.EXISTS_ONE, CelStandardMacro.HAS)
+                    .addVar(this.descriptor.getFullName(), StructTypeReference.create(this.descriptor.getFullName()))
+                    .addMessageTypes(this.descriptor)
                     .build();
             CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder()
                     .build();
