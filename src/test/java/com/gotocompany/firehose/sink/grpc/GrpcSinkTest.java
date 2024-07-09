@@ -88,15 +88,16 @@ public class GrpcSinkTest {
         TestGrpcResponse build = TestGrpcResponse.newBuilder().setSuccess(false).build();
         DynamicMessage response = DynamicMessage.parseFrom(build.getDescriptorForType(), build.toByteArray());
         when(grpcClient.execute(any(), any(RecordHeaders.class))).thenReturn(response);
+
         List<Message> failedMessages = sink.pushMessage(Collections.singletonList(message));
 
         assertFalse(failedMessages.isEmpty());
         assertEquals(1, failedMessages.size());
-
         verify(firehoseInstrumentation, times(1)).logInfo("Preparing {} messages", 1);
         verify(firehoseInstrumentation, times(1)).logDebug("Response: {}", response);
         verify(firehoseInstrumentation, times(1)).logWarn("Grpc Service returned error");
         verify(firehoseInstrumentation, times(1)).logDebug("Failed messages count: {}", 1);
+        verify(firehoseInstrumentation, times(1)).logDebug("Retrying grpc service");
     }
 
     @Test

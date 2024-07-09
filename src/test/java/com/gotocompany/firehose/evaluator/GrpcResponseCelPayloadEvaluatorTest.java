@@ -53,6 +53,48 @@ public class GrpcResponseCelPayloadEvaluatorTest {
     }
 
     @Test
+    public void shouldEvaluateResponseToTrueWhenCelExpressionMatchesRange() {
+        PayloadEvaluator<Message> evaluator = new GrpcResponseCelPayloadEvaluator(
+                GenericResponse.getDescriptor(),
+                "GenericResponse.errors.exists(e, int(e.code) >= 1000 && int(e.code) <= 2000)"
+        );
+        GenericResponse genericResponse = GenericResponse.newBuilder()
+                .setSuccess(false)
+                .setDetail("Detail Message")
+                .addErrors(GenericError.newBuilder()
+                        .setCode("1500")
+                        .setEntity("GoFin")
+                        .setCause("Unknown")
+                        .build())
+                .build();
+
+        boolean result = evaluator.evaluate(genericResponse);
+
+        Assertions.assertTrue(result);
+    }
+
+    @Test
+    public void shouldEvaluateResponseToFalseWhenCelExpressionMatchesRangeAndNotInSet() {
+        PayloadEvaluator<Message> evaluator = new GrpcResponseCelPayloadEvaluator(
+                GenericResponse.getDescriptor(),
+                "GenericResponse.errors.exists(e, int(e.code) >= 1000 && int(e.code) <= 2000 && !(int(e.code) in [1500, 1600]))"
+        );
+        GenericResponse genericResponse = GenericResponse.newBuilder()
+                .setSuccess(false)
+                .setDetail("Detail Message")
+                .addErrors(GenericError.newBuilder()
+                        .setCode("1500")
+                        .setEntity("GoFin")
+                        .setCause("Unknown")
+                        .build())
+                .build();
+
+        boolean result = evaluator.evaluate(genericResponse);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
     public void shouldThrowIllegalArgumentExceptionWhenCelValidationFailed() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> new GrpcResponseCelPayloadEvaluator(
                 GenericResponse.getDescriptor(), "GenericResponse.nonExistField == true"));
@@ -70,9 +112,10 @@ public class GrpcResponseCelPayloadEvaluatorTest {
 
     @Test
     public void shouldThrowIllegalArgumentExceptionWhenCelExpressionContainsUnregisteredMacro() {
-        String expressionWithUnregisteredMacro = "GenericResponse.errors.filter(e, e.code == \"400\")";
+        String expressionWithUnregisteredMacro = "GenericResponse.errors.nonStandardMacro(e, e.code == \"400\")";
 
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new GrpcResponseCelPayloadEvaluator(GenericResponse.getDescriptor(), expressionWithUnregisteredMacro));
     }
+
 }

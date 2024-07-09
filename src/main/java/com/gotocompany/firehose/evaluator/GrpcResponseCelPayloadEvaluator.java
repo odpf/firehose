@@ -67,7 +67,7 @@ public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message
     private void buildCelEnvironment(String celExpression)  {
         try {
             CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder()
-                    .setStandardMacros(CelStandardMacro.EXISTS, CelStandardMacro.EXISTS_ONE, CelStandardMacro.HAS)
+                    .setStandardMacros(CelStandardMacro.values())
                     .addVar(this.descriptor.getFullName(), StructTypeReference.create(this.descriptor.getFullName()))
                     .addMessageTypes(this.descriptor)
                     .build();

@@ -73,6 +73,7 @@ public class GrpcSink extends AbstractSink {
     private void setRetryableErrorInfo(Message message, DynamicMessage dynamicMessage) {
         boolean eligibleToRetry = retryEvaluator.evaluate(dynamicMessage);
         if (eligibleToRetry) {
+            getFirehoseInstrumentation().logDebug("Retrying grpc service");
             message.setErrorInfo(new ErrorInfo(new DefaultException("Retryable gRPC Error"), ErrorType.SINK_RETRYABLE_ERROR));
             return;
         }
