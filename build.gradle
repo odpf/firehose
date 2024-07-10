@@ -103,6 +103,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
     implementation group: 'com.gotocompany', name: 'depot', version: '0.9.1'
     implementation group: 'com.networknt', name: 'json-schema-validator', version: '1.0.59' exclude group: 'org.slf4j'
+    implementation 'dev.cel:cel:0.5.2'
 
     testImplementation group: 'junit', name: 'junit', version: '4.11'
     testImplementation 'org.hamcrest:hamcrest-all:1.3'
