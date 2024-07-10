@@ -1,8 +1,11 @@
 package com.gotocompany.firehose.config;
 
+import com.gotocompany.firehose.config.converter.GrpcDynamicMetadataConverter;
 import com.gotocompany.firehose.config.converter.GrpcMetadataConverter;
 import io.grpc.Metadata;
 import org.aeonbits.owner.Config;
+
+import java.util.Map;
 
 
 public interface GrpcSinkConfig extends AppConfig {
@@ -38,4 +41,9 @@ public interface GrpcSinkConfig extends AppConfig {
     @DefaultValue("")
     @ConverterClass(GrpcMetadataConverter.class)
     Metadata getSinkGrpcMetadata();
+
+    @Key("SINK_GRPC_DYNAMIC_METADATA_TEMPLATE")
+    @DefaultValue("{}")
+    @ConverterClass(GrpcDynamicMetadataConverter.class)
+    Map<String, Object> getSinkGrpcDynamicMetadata();
 }
