@@ -2,21 +2,24 @@ package com.gotocompany.firehose.proto;
 
 import com.gotocompany.firehose.consumer.GenericError;
 import com.gotocompany.firehose.consumer.GenericResponse;
+import io.grpc.Metadata;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ProtoToMetadataMapperTest {
 
-    private static final String TEMPLATE = "{\"$GenericResponse.detail\": \"$GenericResponse.success\"}";
-
-
     @Test
     public void test() throws IOException {
+        Map<String, Object> template = new HashMap<>();
+        template.put("$GenericResponse.detail", "$GenericResponse.success");
+        template.put("staticKey", "$(GenericResponse.errors[0].cause + GenericResponse.errors[0].code)");
+        template.put("shouldBeBoolean", true);
         ProtoToMetadataMapper protoToMetadataMapper = new ProtoToMetadataMapper(
                 GenericResponse.getDescriptor(),
-                TEMPLATE
+                template
         );
         GenericResponse payload = GenericResponse.newBuilder()
                 .setSuccess(false)
@@ -27,7 +30,7 @@ public class ProtoToMetadataMapperTest {
                         .setEntity("GTF")
                         .build())
                 .build();
-        Map<String, Object> metadataValues = protoToMetadataMapper.buildGrpcMetadata(payload);
-        System.out.println(metadataValues);
+        Metadata metadata = protoToMetadataMapper.buildGrpcMetadata(payload);
+        System.out.println(metadata);
     }
 }
