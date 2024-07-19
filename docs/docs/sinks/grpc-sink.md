@@ -27,12 +27,29 @@ Defines the URL of the GRPC method that needs to be called.
 
 ### `SINK_GRPC_METADATA`
 
-Defines the GRPC additional static Metadata that allows clients to provide information to server that is associated with an RPC.
+Defines the GRPC additional static and dynamic Metadata that allows clients to provide information to server that is associated with an RPC.
+Dynamic metadata is populated by using CEL expression applied to the input payload. CEL expression should be flagged by '$' and use fully qualified package name.
+Config format is CSV key-value pair, separated by colon. String, numeric, boolean are the dynamic values supported. Refer to official CEL documentation https://github.com/google/cel-spec.
 
-Note - final metadata will be generated with merging static metadata and the kafka record header. 
+Note - final metadata will be generated with merging metadata and the kafka record header. 
 
-- Example value: `authorization:token,dlq:true`
+- Example value: `authorization:token,dlq:true,$com.goto.company.GenericPayload.field:staticvalue,$com.goto.company.GenericPayload.field_two:$(com.goto.company.GenericPayload.id + '' + com.goto.company.GenericPayload.code)`
 - Type: `optional`
+- Use case :
+  Example Proto
+  ```
+    package com.goto.company
+  
+    message GenericPayload {
+      string field = "field_name";
+      string field_two = "field_two";
+      string id = "123";
+      int code = 400;
+    }
+  ```
+  Example config : `$com.goto.company.GenericPayload.field: $(com.goto.company.GenericPayload.field_two + '_' + string(com.goto.company.GenericPayload.code))`
+  This would result in : `field_name:field_two_400`
+  
 
 ### `SINK_GRPC_RESPONSE_SCHEMA_PROTO_CLASS`
 

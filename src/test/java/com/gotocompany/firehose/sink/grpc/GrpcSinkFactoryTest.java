@@ -1,6 +1,7 @@
 package com.gotocompany.firehose.sink.grpc;
 
 import com.gotocompany.firehose.config.GrpcSinkConfig;
+import com.gotocompany.firehose.consumer.TestGrpcRequest;
 import com.gotocompany.firehose.consumer.TestGrpcResponse;
 import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.sink.Sink;
@@ -72,6 +73,7 @@ public class GrpcSinkFactoryTest {
         config.put("SINK_GRPC_SERVICE_HOST", "localhost");
         config.put("SINK_GRPC_SERVICE_PORT", "5000");
         config.put("SINK_GRPC_RESPONSE_SCHEMA_PROTO_CLASS", TestGrpcResponse.class.getName());
+        config.put("INPUT_SCHEMA_PROTO_CLASS", TestGrpcRequest.getDescriptor().getFullName());
 
         Sink sink = GrpcSinkFactory.create(config, statsDReporter, stencilClient);
 

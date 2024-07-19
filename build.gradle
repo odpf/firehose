@@ -4,7 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.17'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.7"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.33.1"
         classpath "org.ajoberstar:gradle-git:1.6.0"
     }
 }
@@ -33,7 +33,7 @@ lombok {
 }
 
 group 'com.gotocompany'
-version '0.10.3'
+version '0.10.4'
 
 def projName = "firehose"
 
@@ -87,7 +87,6 @@ dependencies {
     }
     implementation 'io.confluent:monitoring-interceptors:3.0.0'
     implementation 'io.grpc:grpc-all:1.53.0'
-    implementation group: 'org.jfrog.buildinfo', name: 'build-info-extractor', version: '2.6.3'
     implementation group: 'com.google.gradle', name: 'osdetector-gradle-plugin', version: '1.2.1'
     implementation group: 'org.apache.ivy', name: 'ivy', version: '2.2.0'
     implementation group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.8'
@@ -103,6 +102,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
     implementation group: 'com.gotocompany', name: 'depot', version: '0.9.1'
     implementation group: 'com.networknt', name: 'json-schema-validator', version: '1.0.59' exclude group: 'org.slf4j'
+    implementation 'dev.cel:cel:0.5.2'
 
     testImplementation group: 'junit', name: 'junit', version: '4.11'
     testImplementation 'org.hamcrest:hamcrest-all:1.3'
