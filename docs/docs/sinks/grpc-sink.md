@@ -82,3 +82,46 @@ Defines the amount of time (in milliseconds) gRPC clients are willing to wait fo
 
 - Example value: `1000`
 - Type: `optional`
+
+### `SINK_GRPC_RESPONSE_RETRY_CEL_EXPRESSION`
+
+Defines the CEL(Common Expression Language) expression used to evaluate whether gRPC sink call should be retried or not based on the gRPC response.
+The given CEL expression should evaluate to a boolean value. If the expression evaluates to true, the unsuccessful gRPC sink call will be retried, otherwise it won't.
+Currently, we support all standard CEL macro including: has, all, exists, exists_one, map, map_filter, filter
+For more information about CEL please refer to this documentation : https://github.com/google/cel-spec/blob/master/doc/langdef.md
+
+- Example value: `com.gotocompany.generic.GrpcResponse.success == false && com.gotocompany.generic.GenericResponse.errors.exists(e, int(e.code) >= 400 && int(e.code) <= 500)`
+- Type: `optional`
+- Default value: ``
+- Use cases :
+    Example response proto :
+    ```
+    syntax = "proto3";
+    package com.gotocompany.generic;
+
+      GenericResponse {
+          bool success = 1;
+          repeated Error errors = 2;
+      }
+
+      Error {
+          string code = 1;
+          string reason = 2;
+      }
+  ```
+
+  Example retry rule : 
+  - Retry on specific error code : `com.gotocompany.generic.GenericResponse.errors.exists(e, e.code == "400")`
+  - Retry on specific error code range : `com.gotocompany.generic.GenericResponse.errors.exists(e, int(e.code) >= 400 && int(e.code) <= 500)`
+  - Retry on error codes outside from specific error codes : `com.gotocompany.generic.GenericResponse.errors.exists(e, !(int(e.code) in [400, 500, 600]))`
+  - Disable retry on all cases : `false`
+  - Retry on all error codes : `true`
+
+### `SINK_GRPC_RESPONSE_RETRY_ERROR_TYPE`
+
+Defines the ErrorType to assign for a retryable error. This is used in conjunction with `SINK_GRPC_RESPONSE_RETRY_CEL_EXPRESSION` and `ERROR_TYPES_FOR_RETRY`.
+Value must be defined in com.gotocompany.depot.error.ErrorType
+
+- Example value: `SINK_RETRYABLE_ERROR`
+- Type: `optional`
+- Default Value: `DEFAULT_ERROR`

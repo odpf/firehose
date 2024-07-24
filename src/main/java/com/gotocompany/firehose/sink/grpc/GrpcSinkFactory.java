@@ -1,8 +1,11 @@
 package com.gotocompany.firehose.sink.grpc;
 
 
+import com.google.protobuf.Message;
 import com.gotocompany.firehose.config.AppConfig;
 import com.gotocompany.firehose.config.GrpcSinkConfig;
+import com.gotocompany.firehose.evaluator.GrpcResponseCelPayloadEvaluator;
+import com.gotocompany.firehose.evaluator.PayloadEvaluator;
 import com.gotocompany.firehose.metrics.FirehoseInstrumentation;
 import com.gotocompany.firehose.proto.ProtoToMetadataMapper;
 import com.gotocompany.firehose.sink.grpc.client.GrpcClient;
@@ -32,15 +35,21 @@ public class GrpcSinkFactory {
                 grpcConfig.getSinkGrpcServiceHost(), grpcConfig.getSinkGrpcServicePort(), grpcConfig.getSinkGrpcMethodUrl(), grpcConfig.getSinkGrpcResponseSchemaProtoClass());
         firehoseInstrumentation.logDebug(grpcSinkConfig);
         ManagedChannel managedChannel = ManagedChannelBuilder.forAddress(grpcConfig.getSinkGrpcServiceHost(), grpcConfig.getSinkGrpcServicePort())
-                        .keepAliveTime(grpcConfig.getSinkGrpcArgKeepaliveTimeMS(), TimeUnit.MILLISECONDS)
-                        .keepAliveTimeout(grpcConfig.getSinkGrpcArgKeepaliveTimeoutMS(), TimeUnit.MILLISECONDS)
-                        .usePlaintext().build();
+                .keepAliveTime(grpcConfig.getSinkGrpcArgKeepaliveTimeMS(), TimeUnit.MILLISECONDS)
+                .keepAliveTimeout(grpcConfig.getSinkGrpcArgKeepaliveTimeoutMS(), TimeUnit.MILLISECONDS)
+                .usePlaintext().build();
         AppConfig appConfig = ConfigFactory.create(AppConfig.class, configuration);
         ProtoToMetadataMapper protoToMetadataMapper = new ProtoToMetadataMapper(stencilClient.get(appConfig.getInputSchemaProtoClass()), grpcConfig.getSinkGrpcMetadata());
         GrpcClient grpcClient = new GrpcClient(new FirehoseInstrumentation(statsDReporter, GrpcClient.class), grpcConfig, managedChannel, stencilClient, protoToMetadataMapper);
         firehoseInstrumentation.logInfo("GRPC connection established");
+        PayloadEvaluator<Message> grpcResponseRetryEvaluator = instantiatePayloadEvaluator(grpcConfig, stencilClient);
+        return new GrpcSink(new FirehoseInstrumentation(statsDReporter, GrpcSink.class), grpcClient, stencilClient, grpcConfig, grpcResponseRetryEvaluator);
+    }
 
-        return new GrpcSink(new FirehoseInstrumentation(statsDReporter, GrpcSink.class), grpcClient, stencilClient);
+    private static PayloadEvaluator<Message> instantiatePayloadEvaluator(GrpcSinkConfig grpcSinkConfig, StencilClient stencilClient) {
+        return new GrpcResponseCelPayloadEvaluator(
+                stencilClient.get(grpcSinkConfig.getSinkGrpcResponseSchemaProtoClass()),
+                grpcSinkConfig.getSinkGrpcResponseRetryCELExpression());
     }
 
 }
