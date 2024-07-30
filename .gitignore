@@ -12,4 +12,5 @@ generated
 .project
 .settings
 bin
+src/test/resources
 .DS_Store

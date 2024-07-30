@@ -83,6 +83,21 @@ Defines the amount of time (in milliseconds) gRPC clients are willing to wait fo
 - Example value: `1000`
 - Type: `optional`
 
+### `SINK_GRPC_TLS_ENABLE`
+
+Indicates whether the sink needs to be connected over TLS. If set to true, the Firehose should establish a TLS connection with the SINK_GRPC_SERVICE_HOST.
+
+- Example value: `true`
+- Type: `optional`
+- Default value: `false`
+
+### `SINK_GRPC_ROOT_CA`
+
+The CA certificates for the domain *.gojek.gcp.
+
+- Example value: `base64 encoded string`
+- Type: `required if SINK_GRPC_TLS_ENABLE is set to true.`
+
 ### `SINK_GRPC_RESPONSE_RETRY_CEL_EXPRESSION`
 
 Defines the CEL(Common Expression Language) expression used to evaluate whether gRPC sink call should be retried or not based on the gRPC response.

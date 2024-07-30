@@ -47,4 +47,10 @@ public interface GrpcSinkConfig extends AppConfig {
     @ConverterClass(GrpcMetadataConverter.class)
     Map<String, String> getSinkGrpcMetadata();
 
+    @Config.Key("SINK_GRPC_TLS_ENABLE")
+    @DefaultValue("false")
+    boolean getSinkGrpcTlsEnable();
+
+    @Config.Key("SINK_GRPC_ROOT_CA")
+    String getSinkGrpcRootCA();
 }
