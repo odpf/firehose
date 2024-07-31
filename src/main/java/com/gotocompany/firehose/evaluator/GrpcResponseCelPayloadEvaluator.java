@@ -6,7 +6,6 @@ import com.gotocompany.firehose.utils.CelUtils;
 import dev.cel.common.types.CelKind;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**
