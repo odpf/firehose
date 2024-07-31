@@ -8,7 +8,6 @@ import com.gotocompany.firehose.exception.DeserializerException;
 import com.gotocompany.firehose.utils.CelUtils;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
 import io.grpc.Metadata;
 import org.apache.commons.collections.MapUtils;
 
@@ -102,7 +101,7 @@ public class ProtoToMetadataMapper {
      * @return a map of CEL expressions to their corresponding programs
      */
     private Map<String, CelRuntime.Program> initializeCelPrograms() {
-        CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+        CelRuntime celRuntime = CelUtils.initializeCelRuntime();
         CelCompiler celCompiler = CelUtils.initializeCelCompiler(this.descriptor);
         return this.metadataTemplate.entrySet()
                 .stream()

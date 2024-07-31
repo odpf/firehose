@@ -52,8 +52,7 @@ public class GrpcResponseCelPayloadEvaluator implements PayloadEvaluator<Message
      */
     private void buildCelEnvironment(String celExpression) {
         CelCompiler celCompiler = CelUtils.initializeCelCompiler(this.descriptor);
-        CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder()
-                .build();
+        CelRuntime celRuntime = CelUtils.initializeCelRuntime();
         this.celProgram = CelUtils.initializeCelProgram(celExpression, celRuntime, celCompiler,
                 celType -> celType.kind().equals(CelKind.BOOL));
     }

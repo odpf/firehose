@@ -3,14 +3,17 @@ package com.gotocompany.firehose.utils;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeFactory;
 import org.aeonbits.owner.util.Collections;
 
 import java.util.function.Predicate;
@@ -43,7 +46,19 @@ public class CelUtils {
         return CelCompilerFactory.standardCelCompilerBuilder()
                 .setStandardMacros(CelStandardMacro.values())
                 .addVar(descriptor.getFullName(), StructTypeReference.create(descriptor.getFullName()))
+                .addLibraries(CelExtensions.strings(), CelExtensions.bindings(), CelExtensions.math(CelOptions.DEFAULT), CelExtensions.protos())
                 .addMessageTypes(descriptor)
+                .build();
+    }
+
+    /**
+     * Initializes the CEL runtime with standard libraries.
+     *
+     * @return the initialized CEL runtime
+     */
+    public static CelRuntime initializeCelRuntime() {
+        return CelRuntimeFactory.standardCelRuntimeBuilder()
+                .addLibraries(CelExtensions.strings(), CelExtensions.math(CelOptions.DEFAULT))
                 .build();
     }
 
