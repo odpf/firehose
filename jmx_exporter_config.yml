@@ -1,0 +1,28 @@
+rules:
+  - pattern: "java.lang<type=Memory><HeapMemoryUsage>.*"
+  - pattern: "java.lang<type=GarbageCollector,name=*>"
+  - pattern: "java.lang<type=Threading><DaemonThreadCount>"
+  - pattern: "java.lang<type=OperatingSystem><SystemCpuLoad>"
+
+  - pattern: 'kafka.consumer<type=consumer-fetch-manager-metrics, client-id=(.+), topic=(.+), partition=(.+)><>([a-zA-Z0-9-_]+)'
+    name: kafka_consumer_fetch_manager_metrics_$4
+    type: GAUGE
+    labels:
+      client_id: "$1"
+      topic: "$2"
+      partition: "$3"
+    help: "Kafka consumer fetch manager metrics $4 for client_id $1 topic $2 and partition $3"
+
+  - pattern: 'kafka.consumer<type=consumer-coordinator-metrics, client-id=(.+)><>([a-zA-Z0-9-_]+)'
+    name: kafka_consumer_coordinator_metrics_$2
+    type: GAUGE
+    labels:
+      client_id: "$1"
+    help: "Kafka consumer coordinator metrics $2 for client_id $1"
+
+  - pattern: 'kafka.consumer<type=consumer-metrics, client-id=(.+)><>([a-zA-Z0-9-_]+)'
+    name: kafka_consumer_consumer_metrics_$2
+    type: GAUGE
+    labels:
+      client_id: "$1"
+    help: "Kafka consumer consumer metrics $2 for client_id $1"
