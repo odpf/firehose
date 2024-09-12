@@ -13,6 +13,8 @@ COPY --from=GRADLE_BUILD ./src/main/resources/log4j.xml /opt/firehose/etc/log4j.
 COPY --from=GRADLE_BUILD ./src/main/resources/logback.xml /opt/firehose/etc/logback.xml
 COPY ./jmx_exporter_config.yml /opt/firehose/etc/jmx_exporter_config.yml
 WORKDIR /opt/firehose
+EXPOSE 8778/tcp
+EXPOSE 9404/tcp
 CMD ["java", \
     "-javaagent:/opt/firehose/jmx_prometheus_javaagent.jar=9404:/opt/firehose/etc/jmx_exporter_config.yml", \
     "-cp", "bin/*:/work-dir/*", \
