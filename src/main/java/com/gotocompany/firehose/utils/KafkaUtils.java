@@ -15,6 +15,7 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -31,7 +32,6 @@ public class KafkaUtils {
     private static final String MAX_POLL_RECORDS = "max.poll.records";
     private static final String SESSION_TIMEOUT_MS = "session.timeout.ms";
     private static final String PARTITION_ASSIGNMENT_STRATEGY = "partition.assignment.strategy";
-
 
 
     /**
@@ -92,20 +92,35 @@ public class KafkaUtils {
     /**
      * Gets kafka producer.
      *
-     * @param config the config
+     * @param kafkaProducerTypesMetadata the connector type, current supported value is DLQ and SOURCE
+     * @param dlqKafkaProducerConfig the dlqKafkaProducerConfig
+     * @param configurations the configurations which dynamically set by the user
      * @return the kafka producer
      */
-    public static KafkaProducer<byte[], byte[]> getKafkaProducer(DlqKafkaProducerConfig config) {
+    public static KafkaProducer<byte[], byte[]> getKafkaProducer(KafkaProducerTypesMetadata kafkaProducerTypesMetadata,
+                                                                 DlqKafkaProducerConfig dlqKafkaProducerConfig,
+                                                                 Map<String, String> configurations) {
         Properties props = new Properties();
-        props.put("bootstrap.servers", config.getDlqKafkaBrokers());
-        props.put("acks", config.getDlqKafkaAcks());
-        props.put("retries", config.getDlqKafkaRetries());
-        props.put("batch.size", config.getDlqKafkaBatchSize());
-        props.put("linger.ms", config.getDlqKafkaLingerMs());
-        props.put("buffer.memory", config.getDlqKafkaBufferMemory());
-        props.put("key.serializer", config.getDlqKafkaKeySerializer());
-        props.put("value.serializer", config.getDlqKafkaValueSerializer());
-
+        props.put("bootstrap.servers", dlqKafkaProducerConfig.getDlqKafkaBrokers());
+        props.put("acks", dlqKafkaProducerConfig.getDlqKafkaAcks());
+        props.put("retries", dlqKafkaProducerConfig.getDlqKafkaRetries());
+        props.put("batch.size", dlqKafkaProducerConfig.getDlqKafkaBatchSize());
+        props.put("linger.ms", dlqKafkaProducerConfig.getDlqKafkaLingerMs());
+        props.put("buffer.memory", dlqKafkaProducerConfig.getDlqKafkaBufferMemory());
+        props.put("key.serializer", dlqKafkaProducerConfig.getDlqKafkaKeySerializer());
+        props.put("value.serializer", dlqKafkaProducerConfig.getDlqKafkaValueSerializer());
+        props.putAll(getAdditionalKafkaConfiguration(kafkaProducerTypesMetadata, configurations));
         return new KafkaProducer<>(props);
+    }
+
+    private static Properties getAdditionalKafkaConfiguration(KafkaProducerTypesMetadata kafkaProducerTypesMetadata, Map<String, String> configurations) {
+        Properties additionalProperties = new Properties();
+        configurations.forEach((key, value) -> {
+            Matcher matcher = kafkaProducerTypesMetadata.getConfigurationPattern().matcher(key);
+            if (matcher.find()) {
+                additionalProperties.put(matcher.group(1).replaceAll("_", ".").toLowerCase(), value);
+            }
+        });
+        return additionalProperties;
     }
 }
