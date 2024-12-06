@@ -11,6 +11,8 @@ import com.gotocompany.depot.config.RedisSinkConfig;
 import com.gotocompany.depot.http.HttpSink;
 import com.gotocompany.depot.log.LogSink;
 import com.gotocompany.depot.log.LogSinkFactory;
+import com.gotocompany.depot.maxcompute.MaxComputeSink;
+import com.gotocompany.depot.maxcompute.MaxComputeSinkFactory;
 import com.gotocompany.depot.metrics.StatsDReporter;
 import com.gotocompany.depot.redis.RedisSink;
 import com.gotocompany.depot.redis.RedisSinkFactory;
@@ -46,6 +48,7 @@ public class SinkFactory {
     private LogSinkFactory logSinkFactory;
     private RedisSinkFactory redisSinkFactory;
     private com.gotocompany.depot.http.HttpSinkFactory httpv2SinkFactory;
+    private MaxComputeSinkFactory maxComputeSinkFactory;
 
     public SinkFactory(KafkaConsumerConfig kafkaConsumerConfig,
                        StatsDReporter statsDReporter,
@@ -104,6 +107,10 @@ public class SinkFactory {
                         statsDReporter);
                 httpv2SinkFactory.init();
                 return;
+            case MAXCOMPUTE:
+                maxComputeSinkFactory = new MaxComputeSinkFactory(statsDReporter, stencilClient, config);
+                maxComputeSinkFactory.init();
+                return;
             default:
                 throw new ConfigurationException("Invalid Firehose SINK_TYPE");
         }
@@ -139,6 +146,8 @@ public class SinkFactory {
                 return MongoSinkFactory.create(config, statsDReporter, stencilClient);
             case HTTPV2:
                 return new GenericSink(new FirehoseInstrumentation(statsDReporter, HttpSink.class), sinkType.name(), httpv2SinkFactory.create());
+            case MAXCOMPUTE:
+                return new GenericSink(new FirehoseInstrumentation(statsDReporter, MaxComputeSink.class), sinkType.name(), maxComputeSinkFactory.create());
             default:
                 throw new ConfigurationException("Invalid Firehose SINK_TYPE");
         }
