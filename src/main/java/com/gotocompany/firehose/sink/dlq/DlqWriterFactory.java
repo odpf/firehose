@@ -39,6 +39,9 @@ public class DlqWriterFactory {
                     case S3:
                         configuration.put("S3_TYPE", "DLQ");
                         break;
+                    case OSS:
+                        configuration.put("OSS_TYPE", "DLQ");
+                        break;
                     default:
                         throw new IllegalArgumentException("DLQ Blob Storage type " + dlqConfig.getBlobStorageType() + "is not supported");
                 }
