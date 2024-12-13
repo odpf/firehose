@@ -27,7 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class ObjectStorageServiceTest {
 
@@ -101,15 +102,15 @@ public class ObjectStorageServiceTest {
         when(objectStorageServiceConfig.getOssDirectoryPrefix()).thenReturn("dir_prefix");
         OSS oss = Mockito.spy(OSS.class);
         ArgumentCaptor<PutObjectRequest> argumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        when(oss.putObject(Mockito.any(PutObjectRequest.class))).thenReturn(null);
+        when(oss.putObject(any(PutObjectRequest.class))).thenReturn(null);
         BucketList bucketList = new BucketList();
         bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
-        when(oss.listBuckets(Mockito.any(ListBucketsRequest.class))).thenReturn(bucketList);
+        when(oss.listBuckets(any(ListBucketsRequest.class))).thenReturn(bucketList);
         ObjectStorageService objectStorageService = new ObjectStorageService(objectStorageServiceConfig, oss);
 
         objectStorageService.store("objectName", "filePath");
 
-        Mockito.verify(oss, Mockito.times(1))
+        verify(oss, times(1))
                 .putObject(argumentCaptor.capture());
         assertEquals("bucket_name", argumentCaptor.getValue().getBucketName());
         assertEquals("dir_prefix/objectName", argumentCaptor.getValue().getKey());
@@ -126,16 +127,16 @@ public class ObjectStorageServiceTest {
         when(objectStorageServiceConfig.getOssBucketName()).thenReturn("bucket_name");
         when(objectStorageServiceConfig.getOssDirectoryPrefix()).thenReturn("dir_prefix");
         OSS oss = Mockito.spy(OSS.class);
-        when(oss.putObject(Mockito.any(PutObjectRequest.class))).thenReturn(null);
+        when(oss.putObject(any(PutObjectRequest.class))).thenReturn(null);
         BucketList bucketList = new BucketList();
         bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
-        when(oss.listBuckets(Mockito.any(ListBucketsRequest.class))).thenReturn(bucketList);
+        when(oss.listBuckets(any(ListBucketsRequest.class))).thenReturn(bucketList);
         ObjectStorageService objectStorageService = new ObjectStorageService(objectStorageServiceConfig, oss);
 
         objectStorageService.store("objectName", "content".getBytes());
 
         ArgumentCaptor<PutObjectRequest> argumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        Mockito.verify(oss, Mockito.times(1))
+        verify(oss, times(1))
                 .putObject(argumentCaptor.capture());
         assertEquals("bucket_name", argumentCaptor.getValue().getBucketName());
         assertEquals("dir_prefix/objectName", argumentCaptor.getValue().getKey());
@@ -155,7 +156,7 @@ public class ObjectStorageServiceTest {
         OSS oss = Mockito.spy(OSS.class);
         BucketList bucketList = new BucketList();
         bucketList.setBucketList(new ArrayList<>());
-        when(oss.listBuckets(Mockito.any(ListBucketsRequest.class))).thenReturn(bucketList);
+        when(oss.listBuckets(any(ListBucketsRequest.class))).thenReturn(bucketList);
         ObjectStorageService objectStorageService = new ObjectStorageService(objectStorageServiceConfig, oss);
 
         objectStorageService.store("objectName", "content".getBytes());
@@ -171,10 +172,10 @@ public class ObjectStorageServiceTest {
         when(objectStorageServiceConfig.getOssBucketName()).thenReturn("bucket_name");
         when(objectStorageServiceConfig.getOssDirectoryPrefix()).thenReturn("dir_prefix");
         OSS oss = Mockito.spy(OSS.class);
-        when(oss.putObject(Mockito.any(PutObjectRequest.class))).thenThrow(new ClientException("client_error"));
+        when(oss.putObject(any(PutObjectRequest.class))).thenThrow(new ClientException("client_error"));
         BucketList bucketList = new BucketList();
         bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
-        when(oss.listBuckets(Mockito.any(ListBucketsRequest.class))).thenReturn(bucketList);
+        when(oss.listBuckets(any(ListBucketsRequest.class))).thenReturn(bucketList);
         ObjectStorageService objectStorageService = new ObjectStorageService(objectStorageServiceConfig, oss);
 
         objectStorageService.store("objectName", "content".getBytes());
@@ -190,10 +191,10 @@ public class ObjectStorageServiceTest {
         when(objectStorageServiceConfig.getOssBucketName()).thenReturn("bucket_name");
         when(objectStorageServiceConfig.getOssDirectoryPrefix()).thenReturn("dir_prefix");
         OSS oss = Mockito.spy(OSS.class);
-        when(oss.putObject(Mockito.any(PutObjectRequest.class))).thenThrow(new OSSException("server is down"));
+        when(oss.putObject(any(PutObjectRequest.class))).thenThrow(new OSSException("server is down"));
         BucketList bucketList = new BucketList();
         bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
-        when(oss.listBuckets(Mockito.any(ListBucketsRequest.class))).thenReturn(bucketList);
+        when(oss.listBuckets(any(ListBucketsRequest.class))).thenReturn(bucketList);
         ObjectStorageService objectStorageService = new ObjectStorageService(objectStorageServiceConfig, oss);
 
         objectStorageService.store("objectName", "content".getBytes());
@@ -209,4 +210,230 @@ public class ObjectStorageServiceTest {
         return result.toString("UTF-8");
     }
 
+    @Test
+    public void shouldHandleLargeFileUpload() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        byte[] largeContent = new byte[10 * 1024 * 1024];
+        service.store("large_file.dat", largeContent);
+
+        verify(oss).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleNetworkDisconnection() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new ClientException("Network disconnected"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleInvalidCredentials() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("InvalidAccessKeyId"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleRateLimitExceeded() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("RequestTimeTooSkewed"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test
+    public void shouldHandleEmptyFile() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("empty.txt", new byte[0]);
+
+        verify(oss).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test
+    public void shouldHandleMultipleDirectoryLevels() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        when(config.getOssDirectoryPrefix()).thenReturn("level1/level2/level3");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+
+        ArgumentCaptor<PutObjectRequest> captor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(oss).putObject(captor.capture());
+        assertEquals("level1/level2/level3/test.txt", captor.getValue().getKey());
+    }
+
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleServerSideError() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("InternalError"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleBucketPermissionDenied() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("AccessDenied"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleBucketNotFound() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("nonexistent_bucket");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("NoSuchBucket"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test
+    public void shouldHandleVeryLongObjectNames() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        StringBuilder longName = new StringBuilder();
+        for (int i = 0; i < 100; i++) {
+            longName.append("very_long_name_");
+        }
+
+        service.store(longName.toString(), "content".getBytes());
+
+        verify(oss).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleQuotaExceeded() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("QuotaExceeded"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleEntityTooLarge() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("EntityTooLarge"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test
+    public void shouldHandleWhitespaceInObjectName() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("file with spaces.txt", "content".getBytes());
+
+        ArgumentCaptor<PutObjectRequest> captor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(oss).putObject(captor.capture());
+        assertEquals("file with spaces.txt", captor.getValue().getKey());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleSignatureDoesNotMatch() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new OSSException("SignatureDoesNotMatch"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
+
+    @Test(expected = BlobStorageException.class)
+    public void shouldHandleRequestTimeout() throws BlobStorageException {
+        ObjectStorageServiceConfig config = Mockito.mock(ObjectStorageServiceConfig.class);
+        when(config.getOssBucketName()).thenReturn("bucket_name");
+        OSS oss = Mockito.spy(OSS.class);
+        BucketList bucketList = new BucketList();
+        bucketList.setBucketList(Collections.singletonList(Mockito.mock(Bucket.class)));
+        when(oss.listBuckets(Mockito.any())).thenReturn(bucketList);
+        when(oss.putObject(any())).thenThrow(new ClientException("RequestTimeout"));
+        ObjectStorageService service = new ObjectStorageService(config, oss);
+
+        service.store("test.txt", "content".getBytes());
+    }
 }

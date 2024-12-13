@@ -4,9 +4,9 @@ A Blob sink Firehose \(`SINK_TYPE`=`blob`\) requires the following variables to 
 
 ### `SINK_BLOB_STORAGE_TYPE`
 
-Defines the types of blob storage the destination remote file system the file will be uploaded. Currently, the only supported blob storages are `GCS` (google cloud storage) and `S3` (Amazon S3) .
+Defines the types of blob storage the destination remote file system the file will be uploaded. Currently, the only supported blob storages are `GCS` (google cloud storage), `OSS`( Alibaba Cloud Object Storage Service) and `S3` (Amazon S3) .
 
-- Example value: `GCS` or `S3`
+- Example value: `GCS`, `OSS` or `S3`
 - Type: `required`
 
 ### `SINK_BLOB_LOCAL_FILE_WRITER_TYPE`
@@ -262,3 +262,94 @@ The amount of time to allow the client to complete the execution of an API call.
 - Example value: `40000`
 - Type: `optional`
 - Default value : `40000`
+
+### `SINK_BLOB_OSS_ENDPOINT`
+
+The endpoint of the OSS service. Each region has its own endpoint. For example, the endpoint for the China (Hangzhou) region is "oss-cn-hangzhou.aliyuncs.com". For more information, please refer to the [OSS endpoints documentation](https://www.alibabacloud.com/help/en/oss/user-guide/regions-and-endpoints).
+
+- Example value: `oss-cn-hangzhou.aliyuncs.com`
+- Type: `required`
+
+### `SINK_BLOB_OSS_REGION`
+
+The region where your OSS bucket is located. This should match the region in your endpoint. For example, if your endpoint is "oss-cn-hangzhou.aliyuncs.com", the region should be "cn-hangzhou".
+
+- Example value: `cn-hangzhou`
+- Type: `required`
+
+### `SINK_BLOB_OSS_ACCESS_ID`
+
+The AccessKey ID provided by Alibaba Cloud. This is used for authentication when accessing OSS. You can obtain this from the Alibaba Cloud console under AccessKey management. For security best practices, it's recommended to use RAM user AccessKeys instead of the primary account AccessKey.
+
+- Example value: `LTAI4FxxxxxxxxxxxxxxxT7PD`
+- Type: `required`
+
+### `SINK_BLOB_OSS_ACCESS_KEY`
+
+The AccessKey Secret provided by Alibaba Cloud. This is paired with the Access ID for authentication. Keep this secret secure and never share it publicly.
+
+- Example value: `D6TxxxxxxxxxxxxxxxxxxxxxxxtRcO`
+- Type: `required`
+
+### `SINK_BLOB_OSS_BUCKET_NAME`
+
+The name of your OSS bucket. Bucket names must be globally unique across all Alibaba Cloud OSS. The name must comply with OSS naming conventions: lowercase letters, numbers, and hyphens only, 3-63 characters long, must start and end with lowercase letter or number.
+
+- Example value: `my-firehose-bucket`
+- Type: `required`
+
+### `SINK_BLOB_OSS_DIRECTORY_PREFIX`
+
+The prefix path where objects will be stored in the bucket. This allows you to organize objects in a folder-like structure within your bucket.
+
+- Example value: `data/firehose/`
+- Type: `optional`
+- Default value: `` (empty string, root of bucket)
+
+### `SINK_BLOB_OSS_SOCKET_TIMEOUT_MS`
+
+The socket timeout in milliseconds. This is the maximum time to wait for data to be transferred over an established connection before giving up.
+
+- Example value: `50000`
+- Type: `optional`
+- Default value: `50000`
+
+### `SINK_BLOB_OSS_CONNECTION_TIMEOUT_MS`
+
+The connection timeout in milliseconds. This is the maximum time to wait while establishing a connection with OSS.
+
+- Example value: `50000`
+- Type: `optional`
+- Default value: `50000`
+
+### `SINK_BLOB_OSS_CONNECTION_REQUEST_TIMEOUT_MS`
+
+The timeout in milliseconds for requesting a connection from the connection manager. A value of -1 means no timeout.
+
+- Example value: `10000`
+- Type: `optional`
+- Default value: `-1`
+
+### `SINK_BLOB_OSS_REQUEST_TIMEOUT_MS`
+
+The maximum time allowed for the entire request operation (connection, upload, server processing, etc.).
+
+- Example value: `300000`
+- Type: `optional`
+- Default value: `300000`
+
+### `SINK_BLOB_OSS_RETRY_ENABLED`
+
+Whether to enable automatic retry of failed requests. When enabled, failed requests will be retried according to the retry configuration.
+
+- Example value: `true`
+- Type: `optional`
+- Default value: `true`
+
+### `SINK_BLOB_OSS_MAX_RETRY_ATTEMPTS`
+
+The maximum number of retry attempts for failed requests when retry is enabled.
+
+- Example value: `3`
+- Type: `optional`
+- Default value: `3`

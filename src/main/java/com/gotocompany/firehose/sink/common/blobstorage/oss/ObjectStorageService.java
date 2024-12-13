@@ -24,7 +24,8 @@ import java.util.Optional;
 public class ObjectStorageService implements BlobStorage {
 
     private final OSS oss;
-    private final ObjectStorageServiceConfig objectStorageServiceConfig;
+    private final String ossBucketName;
+    private final String ossDirectoryPrefix;
 
     public ObjectStorageService(ObjectStorageServiceConfig objectStorageServiceConfig) {
         this(objectStorageServiceConfig, initializeOss(objectStorageServiceConfig));
@@ -32,7 +33,8 @@ public class ObjectStorageService implements BlobStorage {
 
     public ObjectStorageService(ObjectStorageServiceConfig objectStorageServiceConfig, OSS oss) {
         this.oss = oss;
-        this.objectStorageServiceConfig = objectStorageServiceConfig;
+        this.ossBucketName = objectStorageServiceConfig.getOssBucketName();
+        this.ossDirectoryPrefix = objectStorageServiceConfig.getOssDirectoryPrefix();
         checkBucket();
     }
 
@@ -60,7 +62,7 @@ public class ObjectStorageService implements BlobStorage {
     @Override
     public void store(String objectName, String filePath) throws BlobStorageException {
         PutObjectRequest putObjectRequest = new PutObjectRequest(
-                objectStorageServiceConfig.getOssBucketName(),
+                ossBucketName,
                 buildObjectPath(objectName),
                 new File(filePath)
         );
@@ -70,7 +72,7 @@ public class ObjectStorageService implements BlobStorage {
     @Override
     public void store(String objectName, byte[] content) throws BlobStorageException {
         PutObjectRequest putObjectRequest = new PutObjectRequest(
-                objectStorageServiceConfig.getOssBucketName(),
+                ossBucketName,
                 buildObjectPath(objectName),
                 new ByteArrayInputStream(content)
         );
@@ -90,17 +92,17 @@ public class ObjectStorageService implements BlobStorage {
     }
 
     private String buildObjectPath(String objectName) {
-        return Optional.ofNullable(objectStorageServiceConfig.getOssDirectoryPrefix())
+        return Optional.ofNullable(ossDirectoryPrefix)
                 .map(prefix -> prefix + "/" + objectName)
                 .orElse(objectName);
     }
 
     private void checkBucket() {
-        BucketList bucketList = oss.listBuckets(new ListBucketsRequest(objectStorageServiceConfig.getOssBucketName(),
+        BucketList bucketList = oss.listBuckets(new ListBucketsRequest(ossBucketName,
                 null, 1));
         if (bucketList.getBucketList().isEmpty()) {
-            log.error("Bucket does not exist:{}", objectStorageServiceConfig.getOssBucketName());
-            log.error("Please create OSS bucket before running firehose: {}", objectStorageServiceConfig.getOssBucketName());
+            log.error("Bucket does not exist:{}", ossBucketName);
+            log.error("Please create OSS bucket before running firehose: {}", ossBucketName);
             throw new IllegalArgumentException("Bucket does not exist");
         }
     }
