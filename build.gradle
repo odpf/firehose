@@ -33,7 +33,7 @@ lombok {
 }
 
 group 'com.gotocompany'
-version '0.11.2'
+version '0.11.3'
 
 def projName = "firehose"
 
@@ -101,7 +101,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-storage:2.20.1'
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
     implementation group: 'com.aliyun.oss', name: 'aliyun-sdk-oss', version: '3.18.1'
-    implementation group: 'com.gotocompany', name: 'depot', version: '0.10.0'
+    implementation group: 'com.gotocompany', name: 'depot', version: '0.10.1'
     implementation group: 'com.networknt', name: 'json-schema-validator', version: '1.0.59' exclude group: 'org.slf4j'
     implementation 'dev.cel:cel:0.5.2'
 
