@@ -87,6 +87,7 @@
 [Log sink configs](../advance/generic.md)
 
 ## M
+[MaxCompute Sink](../sinks/maxcompute-sink.md)
 
 [metrics](metrics.md)
 

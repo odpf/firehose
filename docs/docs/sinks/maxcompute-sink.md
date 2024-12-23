@@ -1,4 +1,11 @@
-# MaxCompute sink
+# MaxCompute
+
+MaxCompute Sink is a sink connector that allows you to write data from Kafka to Alibaba's MaxCompute Table. It supports consuming data in Protobuf and JSON(ToDo) format.
+
+## Configuration
+
+MaxCompute Sink requires the following variables to be set along with Generic ones. 
+Please refer to the [Depot's MaxCompute Sink Configuration](https://github.com/goto/depot/blob/main/docs/reference/configuration/maxcompute.md) for more.
 
 ### Datatype Protobuf
 

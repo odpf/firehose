@@ -29,6 +29,7 @@ module.exports = {
         "sinks/redis-sink",
         "sinks/elasticsearch-sink",
         "sinks/blob-sink",
+        "sinks/maxcompute-sink",
       ],
     },
     {
