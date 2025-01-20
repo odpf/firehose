@@ -111,7 +111,7 @@ public class SinkWithRetry extends SinkDecorator {
             firehoseInstrumentation.incrementCounter(RETRY_ATTEMPTS_TOTAL);
             firehoseInstrumentation.logInfo("Retrying messages attempt count: {}, Number of messages: {}", attemptCount, messages.size());
             logDebug(retryMessages);
-            retryMessages = super.pushMessage(retryMessages);
+            retryMessages = errorHandler.split(super.pushMessage(retryMessages), ErrorScope.RETRY).get(Boolean.TRUE);
             backOff(retryMessages, attemptCount);
             attemptCount++;
         }
