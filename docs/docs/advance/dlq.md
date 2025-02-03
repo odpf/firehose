@@ -238,14 +238,14 @@ Mandatory if DLQ_BLOB_STORAGE_TYPE is OSS.
 * Type: `Required if DLQ_BLOB_STORAGE_TYPE is OSS`
 * Default value : `null`
 
-## `DLQ_OSS_ACCESS_KEY_ID`
+## `DLQ_OSS_ACCESS_ID`
 
 The access key id of the oss service. For more information, please refer to the [oss documentation](https://www.alibabacloud.com/help/en/oss/developer-reference/oss-java-configure-access-credentials#dd657ea839xv1).
 
 * Example value: `youraccessid`
 * Type: `Required if DLQ_BLOB_STORAGE_TYPE is OSS`
 
-## `DLQ_OSS_ACCESS_KEY_SECRET`
+## `DLQ_OSS_ACCESS_KEY`
 
 The access key secret of the oss service. For more information, please refer to the [oss documentation](https://www.alibabacloud.com/help/en/oss/developer-reference/oss-java-configure-access-credentials#dd657ea839xv1).
 
